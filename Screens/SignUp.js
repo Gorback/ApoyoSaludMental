@@ -2,24 +2,56 @@ import React, { useState } from "react";
 import { StyleSheet, Text, View, Button, TextInput, Image, SafeAreaView, TouchableOpacity, StatusBar, Alert } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase"
-
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function SignUp({ navigation }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [user, setUser] = useState("");
+    const [fechaNacimiento, setFechaNacimiento] = useState(new Date()); // Estado para la fecha de nacimiento
+    const [showDatePicker, setShowDatePicker] = useState(false);
 
     const onHandleSignUp = () => {
-        if (email !== "" && password !== "") {
-            createUserWithEmailAndPassword(auth, email, password)
+        if (email !== "" && password !== "" && user !== "" && fechaNacimiento !== "") {
+            createUserWithEmailAndPassword(auth, email, password, user, fechaNacimiento)
                 .then(() => console.log("login success"))
                 .catch((err) => Alert.alert("login error", err.message));
         }
+    };
+    const showDatePickerModal = () => {
+        setShowDatePicker(true);
+    };
+    const onDateChange = (event, selectedDate) => {
+        const currentDate = selectedDate || fechaNacimiento;
+        setShowDatePicker(Platform.OS === 'ios'); // Oculta el picker en Android después de seleccionar
+        setFechaNacimiento(currentDate); // Actualiza la fecha de nacimiento
     };
     return (
         <View style={styles.container}>
             <View style={styles.whiteSheet} />
             <SafeAreaView style={styles.form}>
                 <Text style={styles.title}>Sign Up</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Enter User"
+                    autoCapitalize="none"
+                    keyboardType="User-name"
+                    textContentType="Text"
+                    autoFocus={true}
+                    value={user}
+                    onChangeText={(text) => setUser(text)}
+                />
+                <Text style={styles.input} onPress={showDatePickerModal}>{fechaNacimiento ? fechaNacimiento.toDateString() : "fecha de Nacimiento"}                 {showDatePicker && (
+                    <DateTimePicker
+                        value={fechaNacimiento}
+                        mode="date"
+                        display="default"
+                        onChange={onDateChange}
+                        maximumDate={new Date()}
+                    />
+                )}</Text>               
+
+
                 <TextInput
                     style={styles.input}
                     placeholder="Enter Email"
@@ -40,24 +72,24 @@ export default function SignUp({ navigation }) {
                     value={password}
                     onChangeText={(text) => setPassword(text)}
                 />
+
                 <TouchableOpacity style={styles.button} onPress={onHandleSignUp}>
-
                     <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Sign Up</Text>
+                </TouchableOpacity>
 
-                </TouchableOpacity>
-                <View style={{ marginTop: 20, flexDirection: 'row', alignItems:'center', alignSelf:'center' }}>
-                <Text style={{color:'gray', fontWeight:'600', fontSize:14}}>I have an account</Text>
-                <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-                    <Text style={{color:'#f57c00', fontWeight:'600', fontSize:14}}> Login</Text>
-                </TouchableOpacity>
+                <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
+                    <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>I have an account</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+                        <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 }}> Login</Text>
+                    </TouchableOpacity>
                 </View>
             </SafeAreaView>
         </View>
-    )
+    );
 }
 const styles = StyleSheet.create({
     container: {
-        flex: 1, 
+        flex: 1,
         backgroundColor: "#fff",
     },
     title: {
