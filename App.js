@@ -8,6 +8,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import Chat from "./Screens/Chat";
 import Login from './Screens/Login';
 import SignUp from './Screens/SignUp'
+import SignUpProfesionales from "./Screens/SignUpProfesionales";
 import Home from './Screens/Home'
 import { auth } from "./config/firebase";
 
@@ -39,6 +40,7 @@ function AuthStack() {
     <Stack.Navigator defaultScreenOptions={Login} screenOptions={{headerShown: false}}>
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="SignUp" component={SignUp} />
+      <Stack.Screen name="SignUpProfesionales" component={SignUpProfesionales}/>
     </Stack.Navigator>
   );
 }

@@ -52,7 +52,7 @@ export default function SignUp({ navigation }) {
         <View style={styles.container}>
             <View style={styles.whiteSheet} />
             <SafeAreaView style={styles.form}>
-                <Text style={styles.title}>Sign Up Usuario</Text>
+                <Text style={styles.title}>Sign Up Profesionales</Text>
 
                 <TextInput
                     style={styles.input}
@@ -123,7 +123,7 @@ export default function SignUp({ navigation }) {
 
                 <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
                     <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>I have an account</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate("SignUpProfesionales")}>
+                    <TouchableOpacity onPress={() => navigation.navigate("Login")}>
                         <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 }}> Login</Text>
                     </TouchableOpacity>
                 </View>
