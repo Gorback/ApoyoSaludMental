@@ -19,7 +19,7 @@ export default function Login({ navigation }) {
         <View style={styles.container}>
             <View style={styles.whiteSheet} />
             <SafeAreaView style={styles.form}>
-                <Text style={styles.title}>Login Usuario</Text>
+                <Text style={styles.title}>Login para Profesionales</Text>
                 <TextInput
                     style={styles.input}
                     placeholder="Enter Email"
@@ -41,22 +41,15 @@ export default function Login({ navigation }) {
                     onChangeText={(text) => setPassword(text)}
                 />
                 <TouchableOpacity style={styles.button} onPress={onHandleLogin}>
-                    <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Log in</Text>
-                </TouchableOpacity>
 
+                    <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Log in</Text>
+
+                </TouchableOpacity>
                 <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
                     <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>Don't have an account</Text>
                     <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
                         <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 } }>Sign Up</Text>
                     </TouchableOpacity>
-                                    
-                </View>
-                <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
-                    <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}> Login for Profesionales</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate("LoginProfesional")}>
-                        <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 } }>LoginProfesional</Text>
-                    </TouchableOpacity>
-                                    
                 </View>
             </SafeAreaView>
         </View>

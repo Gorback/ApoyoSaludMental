@@ -1,40 +1,30 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, Button, TextInput, SafeAreaView, TouchableOpacity, StatusBar, Alert, Platform } from "react-native";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../config/firebase";
+import { StyleSheet, Text, View, TextInput, SafeAreaView, TouchableOpacity, Alert } from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from "@react-native-picker/picker";
-import { doc, setDoc } from "firebase/firestore";
-import { database as db } from "../config/firebase";
 
-
-export default function SignUp({ navigation }) {
+export default function SignUpProfesionales({ navigation }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [user, setUser] = useState("");
+    const [userProfesional, setUserProfesional] = useState("");
     const [fechaNacimiento, setFechaNacimiento] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [genero, setGenero] = useState("")
+    const [genero, setGenero] = useState("");
     const [otroGenero, setOtroGenero] = useState("");
 
     const onHandleSignUp = () => {
-        if (email !== "" && password !== "" && user !== "" && fechaNacimiento !== "" && genero !== "") {
-            createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => { 
-                    const userId = userCredential.user.uid; 
-                    return setDoc(doc(db, "users", userId), { 
-                        user: user,
-                        email: email,
-                        fechaNacimiento: fechaNacimiento.toISOString(),
-                        genero: genero === "Otros" ? otroGenero : genero
-                    });
-                })
-                .then(() => {
-                    console.log("Registro y datos guardados con éxito");
-                })
-                .catch((err) => {
-                    Alert.alert("Login error", err.message);
-                });
+        if (email && password && userProfesional && fechaNacimiento && genero) {
+            // Navegamos a la siguiente pantalla, pasando los datos
+            navigation.navigate("SignUpProfesionalesDetail", {
+                email,
+                password,
+                userProfesional,
+                fechaNacimiento: fechaNacimiento.toISOString(),  // Convertir fecha a ISO string
+                genero,
+                otroGenero
+            });
+        } else {
+            Alert.alert("Error", "Por favor completa todos los campos");
         }
     };
 
@@ -50,83 +40,67 @@ export default function SignUp({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <View style={styles.whiteSheet} />
             <SafeAreaView style={styles.form}>
                 <Text style={styles.title}>Sign Up Profesionales</Text>
 
                 <TextInput
                     style={styles.input}
-                    placeholder="Enter User"
-                    autoCapitalize="none"
-                    value={user}
-                    onChangeText={(text) => setUser(text)}
+                    placeholder="Nombre del Profesional"
+                    value={userProfesional}
+                    onChangeText={setUserProfesional}
                 />
 
-                {/* Botón para mostrar el DateTimePicker */}
-                <Text style={styles.label}>Selecciona tu fecha de Nacimiento</Text>
+                <Text style={styles.label}>Fecha de Nacimiento</Text>
                 <TouchableOpacity style={styles.input} onPress={showDatePickerModal}>
                     <Text>{fechaNacimiento ? fechaNacimiento.toDateString() : "Fecha de Nacimiento"}</Text>
                 </TouchableOpacity>
-
-                {/* DateTimePicker */}
                 {showDatePicker && (
                     <DateTimePicker
                         value={fechaNacimiento}
                         mode="date"
-                        display="default"
                         onChange={onDateChange}
-                        maximumDate={new Date()}
-                        onClose={() => setShowDatePicker(false)} // Asegura que se cierre después de seleccionar
                     />
                 )}
-                {/* Selección de género */}
-                <Text style={styles.label}>Selecciona tu género</Text>
+
+                <Text style={styles.label}>Género</Text>
                 <Picker
                     selectedValue={genero}
                     style={styles.input}
-                    onValueChange={(itemValue) => setGenero(itemValue)}
+                    onValueChange={setGenero}
                 >
                     <Picker.Item label="Masculino" value="Masculino" />
                     <Picker.Item label="Femenino" value="Femenino" />
                     <Picker.Item label="Otros" value="Otros" />
                 </Picker>
+
                 {genero === "Otros" && (
                     <TextInput
                         style={styles.input}
                         placeholder="Especifica tu género"
                         value={otroGenero}
-                        onChangeText={(text) => setOtroGenero(text)}
+                        onChangeText={setOtroGenero}
                     />
                 )}
 
                 <TextInput
                     style={styles.input}
-                    placeholder="Enter Email"
-                    autoCapitalize="none"
-                    keyboardType="email-address"
+                    placeholder="Correo Electrónico"
                     value={email}
-                    onChangeText={(text) => setEmail(text)}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
                 />
 
                 <TextInput
                     style={styles.input}
-                    placeholder="Enter Password"
-                    autoCapitalize="none"
-                    secureTextEntry={true}
+                    placeholder="Contraseña"
                     value={password}
-                    onChangeText={(text) => setPassword(text)}
+                    onChangeText={setPassword}
+                    secureTextEntry
                 />
 
                 <TouchableOpacity style={styles.button} onPress={onHandleSignUp}>
-                    <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Sign Up</Text>
+                    <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Siguiente</Text>
                 </TouchableOpacity>
-
-                <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
-                    <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>I have an account</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-                        <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 }}> Login</Text>
-                    </TouchableOpacity>
-                </View>
             </SafeAreaView>
         </View>
     );
@@ -152,14 +126,6 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 12,
     },
-    whiteSheet: {
-        width: '100%',
-        height: '75%',
-        position: "absolute",
-        bottom: 0,
-        backgroundColor: '#fff',
-        borderTopLeftRadius: 60,
-    },
     form: {
         flex: 1,
         justifyContent: 'center',
@@ -172,5 +138,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 40,
+    },
+    label: {
+        marginBottom: 10,
+        fontSize: 16,
     },
 });

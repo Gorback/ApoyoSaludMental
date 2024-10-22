@@ -7,9 +7,12 @@ import { onAuthStateChanged } from "firebase/auth";
 
 import Chat from "./Screens/Chat";
 import Login from './Screens/Login';
+import LoginProfesional from "./Screens/LoginProfesional"
 import SignUp from './Screens/SignUp'
 import SignUpProfesionales from "./Screens/SignUpProfesionales";
+import SignUpProfesionalesDetail from "./Screens/SignUpProfesionalesDetail"
 import Home from './Screens/Home'
+import HomeProfesional from "./Screens/HomeProfesional";
 import { auth } from "./config/firebase";
 
 const Stack = createNativeStackNavigator();
@@ -39,8 +42,10 @@ function AuthStack() {
   return (
     <Stack.Navigator defaultScreenOptions={Login} screenOptions={{headerShown: false}}>
       <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="LoginProfesional" component={LoginProfesional}/>
       <Stack.Screen name="SignUp" component={SignUp} />
       <Stack.Screen name="SignUpProfesionales" component={SignUpProfesionales}/>
+      <Stack.Screen name="SignUpProfesionalesDetail" component={SignUpProfesionalesDetail}/>
     </Stack.Navigator>
   );
 }
