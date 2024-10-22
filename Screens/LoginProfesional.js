@@ -46,9 +46,15 @@ export default function Login({ navigation }) {
 
                 </TouchableOpacity>
                 <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
-                    <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>Don't have an account</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
-                        <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 } }>Sign Up</Text>
+                    <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>Don't have an account </Text>
+                    <TouchableOpacity onPress={() => navigation.navigate("SignUpProfesionales")}>
+                        <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 } }>SignUp Profesional</Text>
+                    </TouchableOpacity>
+                </View>
+                <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
+                    <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>I have a user account </Text>
+                    <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+                        <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 } }>Login Usuario</Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
