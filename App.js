@@ -1,20 +1,21 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import React, { useState, createContext, useContext, useEffect, Children } from "react";
+import React, { useState, createContext, useContext, useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore"; // Importa para acceder a Firestore
+import { auth, database as db } from "./config/firebase"; // Tu base de datos
 
-
+// Importa tus pantallas
 import Chat from "./Screens/Chat";
-import ChatProfesional from "./Screens/ChatProfesional"
+import ChatProfesional from "./Screens/ChatProfesional";
 import Login from './Screens/Login';
-import LoginProfesional from "./Screens/LoginProfesional"
-import SignUp from './Screens/SignUp'
+import LoginProfesional from "./Screens/LoginProfesional";
+import SignUp from './Screens/SignUp';
 import SignUpProfesionales from "./Screens/SignUpProfesionales";
-import SignUpProfesionalesDetail from "./Screens/SignUpProfesionalesDetail"
-import Home from './Screens/Home'
+import SignUpProfesionalesDetail from "./Screens/SignUpProfesionalesDetail";
+import Home from './Screens/Home';
 import HomeProfesional from "./Screens/HomeProfesional";
-import { auth } from "./config/firebase";
 
 const Stack = createNativeStackNavigator();
 const AuthenticateUserContext = createContext({});
@@ -26,39 +27,61 @@ const AuthenticateUserProvider = ({ children }) => {
       {children}
     </AuthenticateUserContext.Provider>
   );
-}
+};
 
-
+// Stack para usuarios
 function ChatStack() {
   return (
     <Stack.Navigator defaultScreenOptions={Home}>
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Chat" component={Chat} />
-
     </Stack.Navigator>
   );
 }
 
+// Stack para profesionales
+function ChatStackProfesional() {
+  return (
+    <Stack.Navigator defaultScreenOptions={HomeProfesional}>
+      <Stack.Screen name="HomeProfesional" component={HomeProfesional} />
+      <Stack.Screen name="ChatProfesional" component={ChatProfesional} />
+    </Stack.Navigator>
+  );
+}
+
+// Stack para autenticación (usuarios y profesionales)
 function AuthStack() {
   return (
-    <Stack.Navigator defaultScreenOptions={Login} screenOptions={{headerShown: false}}>
+    <Stack.Navigator defaultScreenOptions={Login} screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={Login} />
-      <Stack.Screen name="LoginProfesional" component={LoginProfesional}/>
+      <Stack.Screen name="LoginProfesional" component={LoginProfesional} />
       <Stack.Screen name="SignUp" component={SignUp} />
-      <Stack.Screen name="SignUpProfesionales" component={SignUpProfesionales}/>
-      <Stack.Screen name="SignUpProfesionalesDetail" component={SignUpProfesionalesDetail}/>
+      <Stack.Screen name="SignUpProfesionales" component={SignUpProfesionales} />
+      <Stack.Screen name="SignUpProfesionalesDetail" component={SignUpProfesionalesDetail} />
     </Stack.Navigator>
   );
 }
 
-
+// Root Navigator para manejar la lógica de redirección
 function RootNavigator() {
   const { user, setUser } = useContext(AuthenticateUserContext);
   const [loading, setLoading] = useState(true);
+  const [isProfesional, setIsProfesional] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async authenticatedUser => {
-      authenticatedUser ? setUser(authenticatedUser) : setUser(null);
+    const unsubscribe = onAuthStateChanged(auth, async (authenticatedUser) => {
+      if (authenticatedUser) {
+        const userId = authenticatedUser.uid;
+        const profesionalDoc = await getDoc(doc(db, "profesionales", userId));
+        if (profesionalDoc.exists()) {
+          setIsProfesional(true);
+        } else {
+          setIsProfesional(false);
+        }
+        setUser(authenticatedUser);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
     return () => unsubscribe();
@@ -74,17 +97,16 @@ function RootNavigator() {
 
   return (
     <NavigationContainer>
-      {user ? <ChatStack /> : <AuthStack />}
+      {user ? (isProfesional ? <ChatStackProfesional /> : <ChatStack />) : <AuthStack />}
     </NavigationContainer>
   );
 }
 
-
+// Exporta tu App principal
 export default function App() {
   return (
     <AuthenticateUserProvider>
       <RootNavigator />
     </AuthenticateUserProvider>
-  )
-
+  );
 }

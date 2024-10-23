@@ -8,16 +8,16 @@ import { doc, getDoc } from "firebase/firestore";
 export default function LoginProfesional({ navigation }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const handleOnPressCallContact = () => { Linking.openURL('tel:*4141') };
+   
 
     const onHandleLogin = async () => {
         if (email !== "" && password !== "") {
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const userId = userCredential.user.uid;
-
+    
                 const profesionalDoc = await getDoc(doc(db, "profesionales", userId));
-
+    
                 if (profesionalDoc.exists()) {
                     navigation.navigate("HomeProfesional");
                 } else {
@@ -25,12 +25,19 @@ export default function LoginProfesional({ navigation }) {
                     Alert.alert("Error", "Este correo no pertenece a un profesional.");
                 }
             } catch (err) {
-                Alert.alert("Error en el inicio de sesión", err.message);
+                if (err.code === "auth/user-not-found") {
+                    Alert.alert("Error", "Usuario no encontrado. Verifica tu correo electrónico.");
+                } else if (err.code === "auth/wrong-password") {
+                    Alert.alert("Error", "Contraseña incorrecta. Inténtalo de nuevo.");
+                } else {
+                    Alert.alert("Error en el inicio de sesión", err.message);
+                }
             }
         } else {
             Alert.alert("Error", "Por favor completa todos los campos.");
         }
     };
+    
 
     return (
         <View style={styles.container}>
@@ -72,24 +79,6 @@ export default function LoginProfesional({ navigation }) {
                     <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>I have a user account </Text>
                     <TouchableOpacity onPress={() => navigation.navigate("Login")}>
                         <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 }}>Login Usuario</Text>
-                    </TouchableOpacity>
-                </View>
-                <View title='call contact' onPress={handleOnPressCallContact}>
-                    <TouchableOpacity title='call contact' onPress={handleOnPressCallContact}
-                        style={{
-                            width: 70,
-                            height: 70,
-                            position: 'absolute',
-                            bottom: -100,
-                            right: -3,
-                        }}>
-                        <Image
-                            source={require("../assets/Llamada.webp")}
-                            style={{
-                                width: 70,
-                                height: 70,
-                            }}
-                        />
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>

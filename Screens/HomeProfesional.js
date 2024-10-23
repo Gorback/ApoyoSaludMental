@@ -51,7 +51,10 @@ const HomeProfesional = () => {
             >
                 <Entypo name="chat" size={24} color={colors.lightGray} />
             </TouchableOpacity>
-            <Text style={styles.welcomeText}>Bienvenido, Profesional!</Text> {/* Mensaje de bienvenida */}
+            <View>
+            <Text>Bienvenido a la pantalla de profesionales</Text>
+</View>
+
         </View>
     );
 };
