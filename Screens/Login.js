@@ -1,18 +1,33 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, Button, TextInput, Image, SafeAreaView, TouchableOpacity, StatusBar, Alert } from "react-native";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../config/firebase"
-
+import { StyleSheet, Text, View, Button, TextInput, Image, SafeAreaView, TouchableOpacity, StatusBar, Alert, Linking } from "react-native";
+import { doc, getDoc } from "firebase/firestore";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth, database as db } from "../config/firebase";
 
 export default function Login({ navigation }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
-    const onHandleLogin = () => {
+    const handleOnPressCallContact = () =>{Linking.openURL('tel:*4141')};
+    
+    const onHandleLogin = async () => {
         if (email !== "" && password !== "") {
-            signInWithEmailAndPassword(auth, email, password)
-                .then(() => console.log("login success"))
-                .catch((err) => Alert.alert("login error", err.message));
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const userId = userCredential.user.uid;
+
+                const userDoc = await getDoc(doc(db, "users", userId));
+
+                if (userDoc.exists()) {
+                    navigation.navigate("Home");
+                } else {
+                    await signOut(auth);
+                    Alert.alert("Error", "Este correo no pertenece a un usuario regular.");
+                }
+            } catch (err) {
+                Alert.alert("Error en el inicio de sesión", err.message);
+            }
+        } else {
+            Alert.alert("Error", "Por favor completa todos los campos.");
         }
     };
     return (
@@ -45,18 +60,37 @@ export default function Login({ navigation }) {
                 </TouchableOpacity>
 
                 <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
-                    <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>Don't have an account</Text>
+                    <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>Don't have an account </Text>
                     <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
                         <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 } }>Sign Up</Text>
                     </TouchableOpacity>
                                     
                 </View>
                 <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
-                    <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}> Login for Profesionales</Text>
+                    <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}> Login for Profesional </Text>
                     <TouchableOpacity onPress={() => navigation.navigate("LoginProfesional")}>
                         <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 } }>LoginProfesional</Text>
                     </TouchableOpacity>
                                     
+                </View>
+
+                <View title='call contact' onPress={handleOnPressCallContact}>
+                <TouchableOpacity title='call contact' onPress={handleOnPressCallContact}
+                style={{
+                    width: 70, 
+                    height: 70,
+                    position: 'absolute', 
+                    bottom: -100,
+                    right: -3,
+                }}>
+                    <Image
+                        source={require("../assets/Llamada.webp")}
+                        style={{
+                        width: 70,
+                        height: 70,
+                        }}
+                    />
+                </TouchableOpacity>
                 </View>
             </SafeAreaView>
         </View>

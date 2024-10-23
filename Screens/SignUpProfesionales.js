@@ -101,6 +101,14 @@ export default function SignUpProfesionales({ navigation }) {
                 <TouchableOpacity style={styles.button} onPress={onHandleSignUp}>
                     <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Siguiente</Text>
                 </TouchableOpacity>
+
+
+                <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
+                    <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>I have a user account </Text>
+                    <TouchableOpacity onPress={() => navigation.navigate("LoginProfesional")}>
+                        <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 } }>Login Profesional</Text>
+                    </TouchableOpacity>
+                </View>
             </SafeAreaView>
         </View>
     );

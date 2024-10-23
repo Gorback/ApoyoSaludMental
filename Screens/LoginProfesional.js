@@ -1,20 +1,37 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View, Button, TextInput, Image, SafeAreaView, TouchableOpacity, StatusBar, Alert } from "react-native";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../config/firebase"
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth, database as db } from "../config/firebase"
+import { doc, getDoc } from "firebase/firestore";
 
 
-export default function Login({ navigation }) {
+export default function LoginProfesional({ navigation }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const handleOnPressCallContact = () => { Linking.openURL('tel:*4141') };
 
-    const onHandleLogin = () => {
+    const onHandleLogin = async () => {
         if (email !== "" && password !== "") {
-            signInWithEmailAndPassword(auth, email, password)
-                .then(() => console.log("login success"))
-                .catch((err) => Alert.alert("login error", err.message));
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const userId = userCredential.user.uid;
+
+                const profesionalDoc = await getDoc(doc(db, "profesionales", userId));
+
+                if (profesionalDoc.exists()) {
+                    navigation.navigate("HomeProfesional");
+                } else {
+                    await signOut(auth);
+                    Alert.alert("Error", "Este correo no pertenece a un profesional.");
+                }
+            } catch (err) {
+                Alert.alert("Error en el inicio de sesión", err.message);
+            }
+        } else {
+            Alert.alert("Error", "Por favor completa todos los campos.");
         }
     };
+
     return (
         <View style={styles.container}>
             <View style={styles.whiteSheet} />
@@ -48,13 +65,31 @@ export default function Login({ navigation }) {
                 <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
                     <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>Don't have an account </Text>
                     <TouchableOpacity onPress={() => navigation.navigate("SignUpProfesionales")}>
-                        <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 } }>SignUp Profesional</Text>
+                        <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 }}>SignUp Profesional</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
                     <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>I have a user account </Text>
                     <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-                        <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 } }>Login Usuario</Text>
+                        <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 }}>Login Usuario</Text>
+                    </TouchableOpacity>
+                </View>
+                <View title='call contact' onPress={handleOnPressCallContact}>
+                    <TouchableOpacity title='call contact' onPress={handleOnPressCallContact}
+                        style={{
+                            width: 70,
+                            height: 70,
+                            position: 'absolute',
+                            bottom: -100,
+                            right: -3,
+                        }}>
+                        <Image
+                            source={require("../assets/Llamada.webp")}
+                            style={{
+                                width: 70,
+                                height: 70,
+                            }}
+                        />
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>

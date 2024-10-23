@@ -6,6 +6,7 @@ import { onAuthStateChanged } from "firebase/auth";
 
 
 import Chat from "./Screens/Chat";
+import ChatProfesional from "./Screens/ChatProfesional"
 import Login from './Screens/Login';
 import LoginProfesional from "./Screens/LoginProfesional"
 import SignUp from './Screens/SignUp'

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, Button, TextInput, SafeAreaView, TouchableOpacity, StatusBar, Alert, Platform } from "react-native";
+import { StyleSheet, Text, View, Button, TextInput, SafeAreaView, TouchableOpacity, StatusBar, Image, Alert, Platform } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase";
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -16,13 +16,14 @@ export default function SignUp({ navigation }) {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [genero, setGenero] = useState("")
     const [otroGenero, setOtroGenero] = useState("");
+    const handleOnPressCallContact = () => { Linking.openURL('tel:*4141') };
 
     const onHandleSignUp = () => {
         if (email !== "" && password !== "" && user !== "" && fechaNacimiento !== "" && genero !== "") {
             createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => { 
-                    const userId = userCredential.user.uid; 
-                    return setDoc(doc(db, "users", userId), { 
+                .then((userCredential) => {
+                    const userId = userCredential.user.uid;
+                    return setDoc(doc(db, "users", userId), {
                         user: user,
                         email: email,
                         fechaNacimiento: fechaNacimiento.toISOString(),
@@ -62,13 +63,11 @@ export default function SignUp({ navigation }) {
                     onChangeText={(text) => setUser(text)}
                 />
 
-                {/* Botón para mostrar el DateTimePicker */}
                 <Text style={styles.label}>Selecciona tu fecha de Nacimiento</Text>
                 <TouchableOpacity style={styles.input} onPress={showDatePickerModal}>
                     <Text>{fechaNacimiento ? fechaNacimiento.toDateString() : "Fecha de Nacimiento"}</Text>
                 </TouchableOpacity>
 
-                {/* DateTimePicker */}
                 {showDatePicker && (
                     <DateTimePicker
                         value={fechaNacimiento}
@@ -127,13 +126,32 @@ export default function SignUp({ navigation }) {
                         <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 }}> Login</Text>
                     </TouchableOpacity>
                 </View>
-                
+
                 <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
                     <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>I'm Profesional</Text>
                     <TouchableOpacity onPress={() => navigation.navigate("SignUpProfesionales")}>
                         <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 }}> SignUpProfesionales</Text>
                     </TouchableOpacity>
                 </View>
+                <View title='call contact' onPress={handleOnPressCallContact}>
+                    <TouchableOpacity title='call contact' onPress={handleOnPressCallContact}
+                        style={{
+                            width: 70,
+                            height: 70,
+                            position: 'absolute',
+                            bottom: -70,
+                            right: 280,
+                        }}>
+                        <Image
+                            source={require("../assets/Llamada.webp")}
+                            style={{
+                                width: 70,
+                                height: 70,
+                            }}
+                        />
+                    </TouchableOpacity>
+                </View>
+
             </SafeAreaView>
         </View>
     );

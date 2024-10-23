@@ -29,7 +29,7 @@ export default function SignUpProfesionalesDetail({ route, navigation }) {
                 })
                 .then(() => {
                     Alert.alert("Registro exitoso");
-                    navigation.navigate("Home");  // O la pantalla que desees
+                    navigation.navigate("HomeProfesional");  // O la pantalla que desees
                 })
                 .catch((error) => {
                     Alert.alert("Error", error.message);
@@ -67,9 +67,10 @@ export default function SignUpProfesionalesDetail({ route, navigation }) {
                     multiline
                 />
 
-                <TouchableOpacity style={styles.button} onPress={onHandleCompleteSignUp}>
-                    <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Completar Registro</Text>
+                <TouchableOpacity  style={styles.button} onPress={onHandleCompleteSignUp} >
+                    <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }} >Completar Registro</Text>
                 </TouchableOpacity>
+                
             </SafeAreaView>
         </View>
     );
