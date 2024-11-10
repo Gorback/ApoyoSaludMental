@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, Button, TextInput, SafeAreaView, TouchableOpacity, StatusBar, Image, Alert, Platform } from "react-native";
+import { StyleSheet, Text, View, Button, TextInput, SafeAreaView, TouchableOpacity, StatusBar, Image, Alert, Platform, Linking } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../config/firebase";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from "@react-native-picker/picker";
 import { doc, setDoc } from "firebase/firestore";
-import { database as db } from "../config/firebase";
+import { auth, database as db } from "../../config/firebase";
 
 
 export default function SignUp({ navigation }) {
@@ -143,7 +142,7 @@ export default function SignUp({ navigation }) {
                             right: 280,
                         }}>
                         <Image
-                            source={require("../assets/Llamada.webp")}
+                            source={require("../../assets/Llamada.webp")}
                             style={{
                                 width: 70,
                                 height: 70,

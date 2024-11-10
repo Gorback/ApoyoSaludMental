@@ -13,19 +13,20 @@ export default function SignUpProfesionales({ navigation }) {
     const [otroGenero, setOtroGenero] = useState("");
 
     const onHandleSignUp = () => {
-        if (email && password && userProfesional && fechaNacimiento && genero) {
-            // Navegamos a la siguiente pantalla, pasando los datos
-            navigation.navigate("SignUpProfesionalesDetail", {
-                email,
-                password,
-                userProfesional,
-                fechaNacimiento: fechaNacimiento.toISOString(),  // Convertir fecha a ISO string
-                genero,
-                otroGenero
-            });
-        } else {
-            Alert.alert("Error", "Por favor completa todos los campos");
+        if (!email || !password || !userProfesional || !fechaNacimiento || !genero || (genero === "Otros" && !otroGenero)) {
+            Alert.alert("Error", "Por favor completa todos los campos correctamente.");
+            return;
         }
+
+        // Navegación a la siguiente pantalla
+        navigation.navigate("SignUpProfesionalesDetail", {
+            email,
+            password,
+            userProfesional,
+            fechaNacimiento: fechaNacimiento.toISOString(),
+            genero,
+            otroGenero: genero === "Otros" ? otroGenero : null  // Solo envía `otroGenero` si es necesario
+        });
     };
 
     const showDatePickerModal = () => {
@@ -106,7 +107,7 @@ export default function SignUpProfesionales({ navigation }) {
                 <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
                     <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>I have a user account </Text>
                     <TouchableOpacity onPress={() => navigation.navigate("LoginProfesional")}>
-                        <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 } }>Login Profesional</Text>
+                        <Text style={{ color: '#f57c00', fontWeight: '600', fontSize: 14 }}>Login Profesional</Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 40,
+        marginTop: 10,
     },
     label: {
         marginBottom: 10,

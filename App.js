@@ -9,13 +9,17 @@ import { auth, database as db } from "./config/firebase"; // Tu base de datos
 // Importa tus pantallas
 import Chat from "./Screens/Chat";
 import ChatProfesional from "./Screens/ChatProfesional";
-import Login from './Screens/Login';
-import LoginProfesional from "./Screens/LoginProfesional";
-import SignUp from './Screens/SignUp';
-import SignUpProfesionales from "./Screens/SignUpProfesionales";
-import SignUpProfesionalesDetail from "./Screens/SignUpProfesionalesDetail";
+import Login from './Screens/Account/Login';
+import LoginProfesional from "./Screens/Account/LoginProfesional";
+import SignUp from './Screens/Account/SignUp';
+import SignUpProfesionales from "./Screens/Account/SignUpProfesionales";
+import SignUpProfesionalesDetail from "./Screens/Account/SignUpProfesionalesDetail";
 import Home from './Screens/Home';
 import HomeProfesional from "./Screens/HomeProfesional";
+import OpcionesPerfil from "./Screens/OpcionesPerfil";
+import PerfilVisualizadoPorProfesional from "./Screens/Perfil_Visualizado_Por_Usuario";
+import RegistrosChat from "./Screens/RegistrosChat"
+
 
 const Stack = createNativeStackNavigator();
 const AuthenticateUserContext = createContext({});
@@ -29,11 +33,12 @@ const AuthenticateUserProvider = ({ children }) => {
   );
 };
 
-// Stack para usuarios
 function ChatStack() {
   return (
-    <Stack.Navigator defaultScreenOptions={Home}>
+    <Stack.Navigator initialRouteName="Home">
       <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="PerfilVisualizadoPorProfesional" component={PerfilVisualizadoPorProfesional}/>
+      <Stack.Screen name="RegistrosChat" component={RegistrosChat}/>
       <Stack.Screen name="Chat" component={Chat} />
     </Stack.Navigator>
   );
@@ -42,9 +47,10 @@ function ChatStack() {
 // Stack para profesionales
 function ChatStackProfesional() {
   return (
-    <Stack.Navigator defaultScreenOptions={HomeProfesional}>
+    <Stack.Navigator initialRouteName="HomeProfesional">
       <Stack.Screen name="HomeProfesional" component={HomeProfesional} />
       <Stack.Screen name="ChatProfesional" component={ChatProfesional} />
+      <Stack.Screen name="OpcionesPerfil" component={OpcionesPerfil}/>
     </Stack.Navigator>
   );
 }
@@ -52,7 +58,7 @@ function ChatStackProfesional() {
 // Stack para autenticación (usuarios y profesionales)
 function AuthStack() {
   return (
-    <Stack.Navigator defaultScreenOptions={Login} screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="LoginProfesional" component={LoginProfesional} />
       <Stack.Screen name="SignUp" component={SignUp} />
