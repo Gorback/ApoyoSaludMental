@@ -25,8 +25,8 @@ export default function SignUpProfesionales({ navigation }) {
             userProfesional,
             fechaNacimiento: fechaNacimiento.toISOString(),
             genero,
-            otroGenero: genero === "Otros" ? otroGenero : null  // Solo envía `otroGenero` si es necesario
-        });
+            otroGenero: genero === "Otros" ? otroGenero : null
+        });        
     };
 
     const showDatePickerModal = () => {

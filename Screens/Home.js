@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { FontAwesome, AntDesign, Entypo } from '@expo/vector-icons';
 import { signOut } from "firebase/auth";
 import { auth, database as db } from "../config/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import colors from '../colors';
 
 const calculateAge = (birthdate) => {
@@ -23,6 +23,7 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [professionals, setProfessionals] = useState([]);
+    const [photoURL, setPhotoURL] = useState(null);
 
     const fetchProfessionals = async () => {
         try {
@@ -40,6 +41,56 @@ const Home = () => {
         }
     };
 
+    // Obtener la foto del usuario actual desde Firestore
+    useEffect(() => {
+        const fetchUserPhoto = async () => {
+            try {
+                const userId = auth.currentUser?.uid;
+                if (userId) {
+                    const userDoc = await getDoc(doc(db, "users", userId));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        // Agregar prefijo para que `Image` lo interprete como base64
+                        setPhotoURL(`data:image/png;base64,${userData.photoURL}`);
+                    } else {
+                        console.log("Documento del usuario no existe");
+                    }
+                } else {
+                    console.log("Usuario no autenticado");
+                }
+            } catch (error) {
+                console.log("Error fetching user photo:", error);
+            }
+        };
+        fetchUserPhoto();
+    }, []);
+
+    // Configurar el encabezado con la imagen del usuario
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTitle: () => (
+                <TouchableOpacity onPress={() => navigation.navigate("OpcionesUsuarios")}>
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        {photoURL ? (
+                            <Image
+                                source={{ uri: photoURL }}
+                                style={{ width: 40, height: 40, borderRadius: 20 }}
+                            />
+                        ) : (
+                            <Text style={{ fontSize: 18 }}>Cargando...</Text>
+                        )}
+                    </View>
+                </TouchableOpacity>
+            ),
+            headerRight: () => (
+                <TouchableOpacity onPress={onSignOut} style={{ marginRight: 10 }}>
+                    <AntDesign name="logout" size={24} color={colors.gray} />
+                </TouchableOpacity>
+            ),
+        });
+    }, [navigation, photoURL]);
+    
+
     useEffect(() => {
         fetchProfessionals();
     }, []);
@@ -49,25 +100,9 @@ const Home = () => {
         fetchProfessionals();
     };
 
-    const onEndReached = () => {
-        fetchProfessionals();
-    };
-
     const onSignOut = () => {
         signOut(auth).catch(error => console.log('Error logging out: ', error));
     };
-
-    useLayoutEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <TouchableOpacity onPress={onSignOut} style={{ marginRight: 10 }}>
-                        <AntDesign name="logout" size={24} color={colors.gray} />
-                    </TouchableOpacity>
-                </View>
-            ),
-        });
-    }, [navigation]);
 
     if (loading) {
         return (
@@ -80,7 +115,7 @@ const Home = () => {
     const renderProfessional = ({ item }) => (
         <TouchableOpacity
             style={styles.professionalCard}
-            onPress={() => navigation.navigate("PerfilVisualizadoPorProfesional", { professional: item })} // Navegar con datos
+            onPress={() => navigation.navigate("PerfilVisualizadoPorProfesional", { professional: item })}
         >
             <Image
                 source={{
@@ -109,7 +144,7 @@ const Home = () => {
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
                 }
-                onEndReached={onEndReached}
+                onEndReached={fetchProfessionals}
                 onEndReachedThreshold={0.1}
             />
             <TouchableOpacity

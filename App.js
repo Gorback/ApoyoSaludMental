@@ -19,8 +19,8 @@ import HomeProfesional from "./Screens/HomeProfesional";
 import OpcionesPerfil from "./Screens/OpcionesPerfil";
 import PerfilVisualizadoPorProfesional from "./Screens/Perfil_Visualizado_Por_Usuario";
 import RegistrosChat from "./Screens/RegistrosChat"
-
-
+import OpcionesUsuarios from "./Screens/OpcionesUsuarios"
+import RegistroChatProfesional from "./Screens/RegistroChatProfesional"
 const Stack = createNativeStackNavigator();
 const AuthenticateUserContext = createContext({});
 
@@ -40,6 +40,7 @@ function ChatStack() {
       <Stack.Screen name="PerfilVisualizadoPorProfesional" component={PerfilVisualizadoPorProfesional}/>
       <Stack.Screen name="RegistrosChat" component={RegistrosChat}/>
       <Stack.Screen name="Chat" component={Chat} />
+      <Stack.Screen name="OpcionesUsuarios" component={OpcionesUsuarios}/>
     </Stack.Navigator>
   );
 }
@@ -51,6 +52,7 @@ function ChatStackProfesional() {
       <Stack.Screen name="HomeProfesional" component={HomeProfesional} />
       <Stack.Screen name="ChatProfesional" component={ChatProfesional} />
       <Stack.Screen name="OpcionesPerfil" component={OpcionesPerfil}/>
+      <Stack.Screen name="RegistroChatProfesional" component={RegistroChatProfesional}/>
     </Stack.Navigator>
   );
 }

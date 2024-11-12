@@ -1,106 +1,202 @@
-import React from "react";
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import React, { useState, useEffect } from "react";
+import { View, TouchableOpacity, Text, TextInput, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { AntDesign } from "@expo/vector-icons";
+import { auth, database as db } from "../config/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import colors from '../colors';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from "@react-native-picker/picker";
 
-const calculateAge = (birthdate) => {
-    const today = new Date();
-    const birthDate = new Date(birthdate);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-    }
-    return age;
-};
-
-const PerfilVisualizadoPorUsuario = () => {
-    const route = useRoute();
+const OpcionesUsuarios = () => {
     const navigation = useNavigation();
-    const { professional } = route.params;
+    const [userData, setUserData] = useState({
+        user: '',
+        email: '',
+        fechaNacimiento: new Date(),
+        genero: '',
+        photoURL: ''
+    });
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-    const handleChatPress = () => {
-        // Navega a la pantalla de chat y pasa el ID del profesional como parámetro
-        navigation.navigate("Chat", { professionalId: professional.id });
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                setLoading(true);
+                const userId = auth.currentUser.uid;
+                const docRef = doc(db, "users", userId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    setUserData({
+                        user: data.user,
+                        email: data.email,
+                        fechaNacimiento: new Date(data.fechaNacimiento),
+                        genero: data.genero,
+                        photoURL: data.photoURL ? `data:image/png;base64,${data.photoURL}` : null
+                    });
+                } else {
+                    console.log("No se encontró el documento del usuario.");
+                }
+            } catch (error) {
+                console.log("Error al obtener los datos del usuario:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
+    const handleSave = async () => {
+        try {
+            const userId = auth.currentUser.uid;
+            const docRef = doc(db, "users", userId);
+
+            await updateDoc(docRef, {
+                user: userData.user,
+                email: userData.email,
+                fechaNacimiento: userData.fechaNacimiento.toISOString(),
+                genero: userData.genero,
+                photoURL: userData.photoURL ? userData.photoURL.split(",")[1] : null
+            });
+
+            Alert.alert("Éxito", "Tus datos han sido actualizados correctamente.");
+            navigation.goBack();
+        } catch (error) {
+            console.log("Error al actualizar los datos:", error);
+            Alert.alert("Error", "No se pudieron actualizar los datos.");
+        }
     };
 
-    return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <Image
-                source={{
-                    uri: professional.photoURL
-                        ? `data:image/jpeg;base64,${professional.photoURL}`
-                        : "https://via.placeholder.com/150"
-                }}
-                style={styles.profileImage}
-            />
-            <Text style={styles.nameText}>{professional.userProfesional}</Text>
-            <Text style={styles.infoText}>Edad: {calculateAge(professional.fechaNacimiento)} años</Text>
-            <Text style={styles.infoText}>Especialidad: {professional.especialidad}</Text>
-            <Text style={styles.infoText}>Tarifa: {professional.tarifa}</Text>
-            <Text style={styles.sectionTitle}>Descripción</Text>
-            <Text style={styles.descriptionText}>{professional.descripcion}</Text>
+    const handleChange = (field, value) => {
+        setUserData((prevState) => ({
+            ...prevState,
+            [field]: value
+        }));
+    };
 
-            {/* Botón para iniciar chat */}
-            <TouchableOpacity style={styles.chatButton} onPress={handleChatPress}>
-                <Text style={styles.chatButtonText}>Iniciar Chat</Text>
+    const showDatePickerModal = () => setShowDatePicker(true);
+
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
+
+    return (
+        <View style={styles.container}>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                <AntDesign name="arrowleft" size={24} color={colors.primary} />
             </TouchableOpacity>
-        </ScrollView>
+
+            <Text style={styles.title}>Editar Perfil</Text>
+
+            <TextInput
+                style={styles.input}
+                placeholder="Nombre de usuario"
+                value={userData.user}
+                onChangeText={(text) => handleChange("user", text)}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Correo Electrónico"
+                value={userData.email}
+                onChangeText={(text) => handleChange("email", text)}
+                keyboardType="email-address"
+            />
+
+            {/* Campo de Fecha de Nacimiento */}
+            <Text style={styles.label}>Fecha de Nacimiento</Text>
+            <TouchableOpacity style={styles.input} onPress={showDatePickerModal}>
+                <Text>{userData.fechaNacimiento ? userData.fechaNacimiento.toDateString() : "Fecha de Nacimiento"}</Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+                <DateTimePicker
+                    value={userData.fechaNacimiento}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                        setShowDatePicker(false);
+                        if (selectedDate) {
+                            handleChange("fechaNacimiento", selectedDate);
+                        }
+                    }}
+                    maximumDate={new Date()}
+                />
+            )}
+
+            {/* Campo de Género */}
+            <Text style={styles.label}>Género</Text>
+            <Picker
+                selectedValue={userData.genero}
+                style={styles.input}
+                onValueChange={(itemValue) => handleChange("genero", itemValue)}
+            >
+                <Picker.Item label="Masculino" value="Masculino" />
+                <Picker.Item label="Femenino" value="Femenino" />
+                <Picker.Item label="Otros" value="Otros" />
+            </Picker>
+
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                <Text style={styles.saveButtonText}>Guardar</Text>
+            </TouchableOpacity>
+        </View>
     );
 };
 
-export default PerfilVisualizadoPorUsuario;
+export default OpcionesUsuarios;
 
 const styles = StyleSheet.create({
     container: {
-        flexGrow: 1,
-        alignItems: 'center',
+        flex: 1,
         padding: 20,
-        backgroundColor: '#fff',
+        backgroundColor: "#fff",
     },
-    profileImage: {
-        width: 150,
-        height: 150,
-        borderRadius: 75,
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    backButton: {
         marginBottom: 20,
     },
-    nameText: {
+    title: {
         fontSize: 24,
         fontWeight: 'bold',
         color: colors.primary,
-        marginBottom: 10,
-        textAlign: 'center',
-    },
-    infoText: {
-        fontSize: 18,
-        color: '#333',
-        marginBottom: 5,
-        textAlign: 'center',
-    },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: colors.primary,
-        marginVertical: 15,
-        textAlign: 'center',
-    },
-    descriptionText: {
-        fontSize: 16,
-        color: '#666',
-        textAlign: 'center',
         marginBottom: 20,
+        textAlign: 'center',
     },
-    chatButton: {
-        backgroundColor: colors.primary,
-        paddingVertical: 12,
-        paddingHorizontal: 25,
+    input: {
+        backgroundColor: "#F6F7FB",
+        height: 50,
         borderRadius: 8,
+        padding: 10,
+        marginBottom: 15,
+        fontSize: 16,
+    },
+    label: {
+        marginBottom: 5,
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    saveButton: {
+        backgroundColor: colors.primary,
+        height: 50,
+        borderRadius: 8,
+        justifyContent: 'center',
         alignItems: 'center',
         marginTop: 20,
     },
-    chatButtonText: {
+    saveButtonText: {
         color: '#fff',
-        fontSize: 18,
         fontWeight: 'bold',
+        fontSize: 18,
     },
 });

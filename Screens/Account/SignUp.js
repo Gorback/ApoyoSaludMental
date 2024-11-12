@@ -20,42 +20,53 @@ export default function SignUp({ navigation }) {
     const handleOnPressCallContact = () => { Linking.openURL('tel:*4141'); };
 
     const pickImage = async () => {
-        // Solicitar permiso para acceder a la galería
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-        if (permissionResult.granted === false) {
+    
+        if (!permissionResult.granted) {
             Alert.alert("Permiso requerido", "Necesitamos permiso para acceder a tus fotos.");
             return;
         }
-
-        // Abrir la galería de imágenes
+    
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
             quality: 0.5,
         });
-
-        if (!result.cancelled) {
-            setImage(result.uri);
+    
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            const selectedUri = result.assets[0].uri; // Obtener el URI desde el array assets
+            setImage(selectedUri); // Guarda el URI en el estado
+            console.log("Selected image URI:", selectedUri); // Confirmar que se obtiene el URI correcto
         } else {
             Alert.alert("Error", "No se seleccionó ninguna imagen.");
         }
     };
 
     const uploadImageAsBase64 = async (uri) => {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        return new Promise((resolve, reject) => {
+        try {
+            const response = await fetch(uri);
+            const blob = await response.blob();
             const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64data = reader.result.split(',')[1]; // Obtener solo el string base64
-                resolve(base64data);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
+    
+            return new Promise((resolve, reject) => {
+                reader.onloadend = () => {
+                    const base64data = reader.result.split(',')[1]; // Obtener solo el string base64
+                    console.log("Base64 Encoded Data:", base64data); // Verificar que el dato base64 se genera
+                    resolve(base64data);
+                };
+                reader.onerror = (error) => {
+                    console.error("Error al leer blob como base64:", error);
+                    reject(error);
+                };
+                reader.readAsDataURL(blob);
+            });
+        } catch (error) {
+            console.error("Error al convertir la imagen a base64:", error);
+            throw new Error("La conversión de imagen a base64 falló.");
+        }
     };
+    
 
     const onHandleSignUp = async () => {
         if (email && password && user && fechaNacimiento && genero) {
@@ -222,11 +233,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: "orange",
         alignSelf: "center",
-        paddingBottom: 24,
+        paddingBottom: 20,
     },
     input: {
         backgroundColor: "#F6F7FB",
-        height: 58,
+        height: 42,
         marginBottom: 20,
         fontSize: 16,
         borderRadius: 10,
@@ -257,7 +268,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 20,
+        marginTop: 5,
     },
     imageContainer: {
         width: 120,

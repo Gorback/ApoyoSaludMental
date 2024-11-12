@@ -114,7 +114,7 @@ const HomeProfesional = () => {
 
             {/* Botón de chat en una posición fija */}
             <TouchableOpacity
-                onPress={() => navigation.navigate("ChatProfesional")}
+                onPress={() => navigation.navigate("RegistroChatProfesional")}
                 style={styles.chatButton}
             >
                 <Entypo name="chat" size={24} color={colors.lightGray} />

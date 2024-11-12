@@ -1,29 +1,18 @@
-import React, {
-    useState,
-    useEffect,
-    useLayoutEffect,
-    useCallback
-} from 'react';
-import { TouchableOpacity, Text } from 'react-native';
+import React, { useState, useLayoutEffect, useCallback, useEffect } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { GiftedChat } from 'react-native-gifted-chat';
-import {
-    collection,
-    addDoc,
-    orderBy,
-    query,
-    onSnapshot
-} from 'firebase/firestore';
+import { collection, addDoc, orderBy, query, onSnapshot, where } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
-import { auth, database } from '../config/firebase';
-import { useNavigation } from '@react-navigation/native';
+import { auth, database as db } from '../config/firebase';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import colors from '../colors';
 
-
-export default function Chat() {
-
+export default function ChatProfesional() {
     const [messages, setMessages] = useState([]);
     const navigation = useNavigation();
+    const route = useRoute();
+    const { userId } = route.params; // ID del usuario destinatario
 
     const onSignOut = () => {
         signOut(auth).catch(error => console.log('Error logging out: ', error));
@@ -32,67 +21,62 @@ export default function Chat() {
     useLayoutEffect(() => {
         navigation.setOptions({
             headerRight: () => (
-                <TouchableOpacity
-                    style={{
-                        marginRight: 10
-                    }}
-                    onPress={onSignOut}
-                >
-                    <AntDesign name="logout" size={24} color={colors.gray} style={{ marginRight: 10 }} />
+                <TouchableOpacity style={{ marginRight: 10 }} onPress={onSignOut}>
+                    <AntDesign name="logout" size={24} color={colors.gray} />
                 </TouchableOpacity>
             )
         });
     }, [navigation]);
 
-    useLayoutEffect(() => {
-
-        const collectionRef = collection(database, 'chats');
-        const q = query(collectionRef, orderBy('createdAt', 'desc'));
+    useEffect(() => {
+        const currentProfessionalId = auth.currentUser.uid;
+        const collectionRef = collection(db, 'chats');
+        const q = query(
+            collectionRef,
+            where('participants', 'array-contains', currentProfessionalId), // Filtrar por el profesional actual
+            orderBy('createdAt', 'desc')
+        );
 
         const unsubscribe = onSnapshot(q, querySnapshot => {
-            console.log('querySnapshot unsusbscribe');
             setMessages(
-                querySnapshot.docs.map(doc => ({
-                    _id: doc.data()._id,
-                    createdAt: doc.data().createdAt.toDate(),
-                    text: doc.data().text,
-                    user: doc.data().user
-                }))
+                querySnapshot.docs
+                    .filter(doc => doc.data().participants.includes(userId)) // Filtrar mensajes solo del destinatario actual
+                    .map(doc => ({
+                        _id: doc.data()._id,
+                        createdAt: doc.data().createdAt.toDate(),
+                        text: doc.data().text,
+                        user: doc.data().user,
+                    }))
             );
         });
+
         return unsubscribe;
-    }, []);
+    }, [userId]);
 
     const onSend = useCallback((messages = []) => {
-        setMessages(previousMessages =>
-            GiftedChat.append(previousMessages, messages)
-        );
+        const currentProfessionalId = auth.currentUser.uid;
+        setMessages(previousMessages => GiftedChat.append(previousMessages, messages));
+        
         const { _id, createdAt, text, user } = messages[0];
-        addDoc(collection(database, 'chats'), {
+        addDoc(collection(db, 'chats'), {
             _id,
             createdAt,
             text,
-            user
+            user,
+            participants: [currentProfessionalId, userId], // Agrega ambos usuarios en 'participants'
         });
-    }, []);
+    }, [userId]);
 
     return (
         <GiftedChat
             messages={messages}
-            showAvatarForEveryMessage={false}
-            showUserAvatar={false}
             onSend={messages => onSend(messages)}
-            messagesContainerStyle={{
-                backgroundColor: '#fff'
-            }}
-            textInputStyle={{
-                backgroundColor: '#fff',
-                borderRadius: 20,
-            }}
             user={{
-                _id: auth?.currentUser?.email,
+                _id: auth?.currentUser?.uid,
                 avatar: 'https://i.pravatar.cc/300'
             }}
+            messagesContainerStyle={{ backgroundColor: '#fff' }}
+            textInputStyle={{ backgroundColor: '#fff', borderRadius: 20 }}
         />
     );
 }

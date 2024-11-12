@@ -5,18 +5,18 @@ import { collection, query, where, onSnapshot, orderBy, doc, getDoc } from "fire
 import { auth, database as db } from "../config/firebase";
 import colors from '../colors';
 
-const RegistroChat = () => {
+const RegistroChatProfesional = () => {
     const [loading, setLoading] = useState(true);
     const [chatList, setChatList] = useState([]);
     const navigation = useNavigation();
 
     useEffect(() => {
-        const currentUserId = auth.currentUser.uid;
+        const currentProfessionalId = auth.currentUser.uid;
         const collectionRef = collection(db, "chats");
 
         const q = query(
             collectionRef,
-            where("participants", "array-contains", currentUserId),
+            where("participants", "array-contains", currentProfessionalId),
             orderBy("createdAt", "desc")
         );
 
@@ -25,29 +25,27 @@ const RegistroChat = () => {
 
             for (const docSnap of snapshot.docs) {
                 const chatData = docSnap.data();
-                const otherParticipantId = chatData.participants.find(id => id !== currentUserId);
+                const otherParticipantId = chatData.participants.find(id => id !== currentProfessionalId);
 
                 if (!chats[otherParticipantId]) {
-                    // Intentar obtener datos de la colección "profesionales"
-                    const userDocRef = doc(db, "profesionales", otherParticipantId);
+                    // Intentar obtener datos de la colección "users"
+                    const userDocRef = doc(db, "users", otherParticipantId);
                     const userDocSnap = await getDoc(userDocRef);
 
                     if (userDocSnap.exists()) {
-                        console.log("Datos del profesional:", userDocSnap.data()); // Depuración
-                        const professionalName = userDocSnap.data().userProfesional || "Sin nombre";
+                        const userName = userDocSnap.data().user || "Sin nombre";
                         chats[otherParticipantId] = {
                             id: otherParticipantId,
                             lastMessage: chatData.text || "Último mensaje...",
-                            professionalName,
-                            professionalPhoto: `data:image/jpeg;base64,${userDocSnap.data().photoURL}`,
+                            userName,
+                            userPhoto: `data:image/jpeg;base64,${userDocSnap.data().photoURL}`,
                         };
                     } else {
-                        console.log(`No se encontraron datos para el usuario con ID ${otherParticipantId}`);
                         chats[otherParticipantId] = {
                             id: otherParticipantId,
                             lastMessage: chatData.text || "Último mensaje...",
-                            professionalName: "Usuario no encontrado",
-                            professionalPhoto: "https://via.placeholder.com/150",
+                            userName: "Usuario no encontrado",
+                            userPhoto: "https://via.placeholder.com/150",
                         };
                     }
                 }
@@ -60,8 +58,8 @@ const RegistroChat = () => {
         return unsubscribe;
     }, []);
 
-    const navigateToChat = (professionalId) => {
-        navigation.navigate("Chat", { professionalId });
+    const navigateToChat = (userId) => {
+        navigation.navigate("ChatProfesional", { userId });
     };
 
     if (loading) {
@@ -74,9 +72,9 @@ const RegistroChat = () => {
 
     const renderChatItem = ({ item }) => (
         <TouchableOpacity style={styles.chatItem} onPress={() => navigateToChat(item.id)}>
-            <Image source={{ uri: item.professionalPhoto }} style={styles.professionalImage} />
+            <Image source={{ uri: item.userPhoto }} style={styles.userImage} />
             <View style={styles.chatInfo}>
-                <Text style={styles.professionalName}>{item.professionalName}</Text>
+                <Text style={styles.userName}>{item.userName}</Text>
                 <Text style={styles.lastMessage}>{item.lastMessage}</Text>
             </View>
         </TouchableOpacity>
@@ -94,7 +92,7 @@ const RegistroChat = () => {
     );
 };
 
-export default RegistroChat;
+export default RegistroChatProfesional;
 
 const styles = StyleSheet.create({
     container: {
@@ -116,7 +114,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#ddd',
         alignItems: 'center',
     },
-    professionalImage: {
+    userImage: {
         width: 50,
         height: 50,
         borderRadius: 25,
@@ -126,7 +124,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
     },
-    professionalName: {
+    userName: {
         fontSize: 18,
         fontWeight: 'bold',
         color: colors.primary,
