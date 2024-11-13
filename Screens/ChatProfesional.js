@@ -1,7 +1,7 @@
 import React, { useState, useLayoutEffect, useCallback, useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { GiftedChat } from 'react-native-gifted-chat';
-import { collection, addDoc, orderBy, query, onSnapshot, where } from 'firebase/firestore';
+import { collection, addDoc, orderBy, query, onSnapshot, where, doc, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { auth, database as db } from '../config/firebase';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -10,9 +10,10 @@ import colors from '../colors';
 
 export default function ChatProfesional() {
     const [messages, setMessages] = useState([]);
+    const [userPhoto, setUserPhoto] = useState("https://via.placeholder.com/150"); // Imagen de respaldo
     const navigation = useNavigation();
     const route = useRoute();
-    const { userId } = route.params; // ID del usuario destinatario
+    const { userId } = route.params;
 
     const onSignOut = () => {
         signOut(auth).catch(error => console.log('Error logging out: ', error));
@@ -29,18 +30,28 @@ export default function ChatProfesional() {
     }, [navigation]);
 
     useEffect(() => {
+        const fetchUserPhoto = async () => {
+            const userDocRef = doc(db, 'users', userId);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                const photoBase64 = userDocSnap.data().photoURL;
+                setUserPhoto(`data:image/jpeg;base64,${photoBase64}`);
+            }
+        };
+        fetchUserPhoto();
+
         const currentProfessionalId = auth.currentUser.uid;
         const collectionRef = collection(db, 'chats');
         const q = query(
             collectionRef,
-            where('participants', 'array-contains', currentProfessionalId), // Filtrar por el profesional actual
+            where('participants', 'array-contains', currentProfessionalId),
             orderBy('createdAt', 'desc')
         );
 
         const unsubscribe = onSnapshot(q, querySnapshot => {
             setMessages(
                 querySnapshot.docs
-                    .filter(doc => doc.data().participants.includes(userId)) // Filtrar mensajes solo del destinatario actual
+                    .filter(doc => doc.data().participants.includes(userId))
                     .map(doc => ({
                         _id: doc.data()._id,
                         createdAt: doc.data().createdAt.toDate(),
@@ -56,14 +67,14 @@ export default function ChatProfesional() {
     const onSend = useCallback((messages = []) => {
         const currentProfessionalId = auth.currentUser.uid;
         setMessages(previousMessages => GiftedChat.append(previousMessages, messages));
-        
+
         const { _id, createdAt, text, user } = messages[0];
         addDoc(collection(db, 'chats'), {
             _id,
             createdAt,
             text,
             user,
-            participants: [currentProfessionalId, userId], // Agrega ambos usuarios en 'participants'
+            participants: [currentProfessionalId, userId],
         });
     }, [userId]);
 
@@ -73,7 +84,7 @@ export default function ChatProfesional() {
             onSend={messages => onSend(messages)}
             user={{
                 _id: auth?.currentUser?.uid,
-                avatar: 'https://i.pravatar.cc/300'
+                avatar: userPhoto,
             }}
             messagesContainerStyle={{ backgroundColor: '#fff' }}
             textInputStyle={{ backgroundColor: '#fff', borderRadius: 20 }}
