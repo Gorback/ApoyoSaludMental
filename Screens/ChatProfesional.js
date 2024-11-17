@@ -10,11 +10,7 @@ import colors from '../colors';
 
 export default function ChatProfesional() {
     const [messages, setMessages] = useState([]);
-<<<<<<< HEAD
-    const [userPhoto, setUserPhoto] = useState("https://via.placeholder.com/150"); // Imagen de respaldo
-=======
     const [professionalPhoto, setProfessionalPhoto] = useState(null);
->>>>>>> 2c2c0ff (Las fotos de los usuarios y profesional se muestran en el chat y agregue los servicios de mercado pago)
     const navigation = useNavigation();
     const route = useRoute();
     const { userId } = route.params;
@@ -34,17 +30,6 @@ export default function ChatProfesional() {
     }, [navigation]);
 
     useEffect(() => {
-<<<<<<< HEAD
-        const fetchUserPhoto = async () => {
-            const userDocRef = doc(db, 'users', userId);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-                const photoBase64 = userDocSnap.data().photoURL;
-                setUserPhoto(`data:image/jpeg;base64,${photoBase64}`);
-            }
-        };
-        fetchUserPhoto();
-=======
         const fetchProfessionalPhoto = async () => {
             const docRef = doc(database, 'profesionales', auth.currentUser.uid);
             const docSnap = await getDoc(docRef);
@@ -56,7 +41,6 @@ export default function ChatProfesional() {
             }
         };
         fetchProfessionalPhoto();
->>>>>>> 2c2c0ff (Las fotos de los usuarios y profesional se muestran en el chat y agregue los servicios de mercado pago)
 
         const currentProfessionalId = auth.currentUser.uid;
         const collectionRef = collection(database, 'chats');
@@ -102,11 +86,7 @@ export default function ChatProfesional() {
             onSend={messages => onSend(messages)}
             user={{
                 _id: auth?.currentUser?.uid,
-<<<<<<< HEAD
-                avatar: userPhoto,
-=======
                 avatar: professionalPhoto, // Foto del profesional
->>>>>>> 2c2c0ff (Las fotos de los usuarios y profesional se muestran en el chat y agregue los servicios de mercado pago)
             }}
             messagesContainerStyle={{ backgroundColor: '#fff' }}
             textInputStyle={{ backgroundColor: '#fff', borderRadius: 20 }}
