@@ -10,7 +10,11 @@ import colors from '../colors';
 
 export default function Chat() {
     const [messages, setMessages] = useState([]);
+<<<<<<< HEAD
     const [professionalPhoto, setProfessionalPhoto] = useState("https://via.placeholder.com/150"); // Imagen de respaldo
+=======
+    const [userPhoto, setUserPhoto] = useState(null);
+>>>>>>> 2c2c0ff (Las fotos de los usuarios y profesional se muestran en el chat y agregue los servicios de mercado pago)
     const navigation = useNavigation();
     const route = useRoute();
     const { professionalId } = route.params;
@@ -30,6 +34,7 @@ export default function Chat() {
     }, [navigation]);
 
     useEffect(() => {
+<<<<<<< HEAD
         const fetchProfessionalPhoto = async () => {
             const userDocRef = doc(database, 'profesionales', professionalId);
             const userDocSnap = await getDoc(userDocRef);
@@ -39,6 +44,19 @@ export default function Chat() {
             }
         };
         fetchProfessionalPhoto();
+=======
+        const fetchUserPhoto = async () => {
+            const userDocRef = doc(database, 'users', auth.currentUser.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                const photoBase64 = userDocSnap.data().photoURL;
+                setUserPhoto(`data:image/jpeg;base64,${photoBase64}`);
+            } else {
+                setUserPhoto("https://via.placeholder.com/150");
+            }
+        };
+        fetchUserPhoto();
+>>>>>>> 2c2c0ff (Las fotos de los usuarios y profesional se muestran en el chat y agregue los servicios de mercado pago)
 
         const currentUserId = auth.currentUser.uid;
         const collectionRef = collection(database, 'chats');
@@ -84,7 +102,11 @@ export default function Chat() {
             onSend={messages => onSend(messages)}
             user={{
                 _id: auth?.currentUser?.uid,
+<<<<<<< HEAD
                 avatar: professionalPhoto,
+=======
+                avatar: userPhoto, // Foto del usuario
+>>>>>>> 2c2c0ff (Las fotos de los usuarios y profesional se muestran en el chat y agregue los servicios de mercado pago)
             }}
             messagesContainerStyle={{ backgroundColor: '#fff' }}
             textInputStyle={{ backgroundColor: '#fff', borderRadius: 20 }}

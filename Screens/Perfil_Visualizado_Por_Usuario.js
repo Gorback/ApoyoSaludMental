@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import colors from '../colors';
+import { createPaymentPreference } from "../Services/mercadoPagoService"; // Asegúrate de usar la ruta correcta
 
 const calculateAge = (birthdate) => {
     const today = new Date();
@@ -19,9 +20,28 @@ const PerfilVisualizadoPorUsuario = () => {
     const navigation = useNavigation();
     const { professional } = route.params;
 
-    const handleChatPress = () => {
-        // Navega a la pantalla de chat y pasa el ID del profesional como parámetro
-        navigation.navigate("Chat", { professionalId: professional.id });
+    const handlePaymentAndChat = async () => {
+        try {
+            // Validaciones básicas
+            if (!professional.tarifa || professional.tarifa <= 0) {
+                throw new Error("La tarifa del profesional no es válida.");
+            }
+
+            if (!professional.userProfesional) {
+                throw new Error("El nombre del profesional no está disponible.");
+            }
+
+            // Crear la preferencia de pago
+            const paymentUrl = await createPaymentPreference({
+                title: `Sesión con ${professional.userProfesional}`,
+                price: professional.tarifa,
+                userEmail: "usuario@example.com", // Reemplaza con el email del usuario autenticado
+            });
+
+            Linking.openURL(paymentUrl); // Redirige al checkout de Mercado Pago
+        } catch (error) {
+            Alert.alert("Error", error.message || "No se pudo procesar el pago.");
+        }
     };
 
     return (
@@ -30,20 +50,19 @@ const PerfilVisualizadoPorUsuario = () => {
                 source={{
                     uri: professional.photoURL
                         ? `data:image/jpeg;base64,${professional.photoURL}`
-                        : "https://via.placeholder.com/150"
+                        : "https://via.placeholder.com/150",
                 }}
                 style={styles.profileImage}
             />
             <Text style={styles.nameText}>{professional.userProfesional}</Text>
             <Text style={styles.infoText}>Edad: {calculateAge(professional.fechaNacimiento)} años</Text>
             <Text style={styles.infoText}>Especialidad: {professional.especialidad}</Text>
-            <Text style={styles.infoText}>Tarifa: {professional.tarifa}</Text>
+            <Text style={styles.infoText}>Tarifa: ${professional.tarifa}</Text>
             <Text style={styles.sectionTitle}>Descripción</Text>
             <Text style={styles.descriptionText}>{professional.descripcion}</Text>
 
-            {/* Botón para iniciar chat */}
-            <TouchableOpacity style={styles.chatButton} onPress={handleChatPress}>
-                <Text style={styles.chatButtonText}>Iniciar Chat</Text>
+            <TouchableOpacity style={styles.chatButton} onPress={handlePaymentAndChat}>
+                <Text style={styles.chatButtonText}>Pagar Sesión</Text>
             </TouchableOpacity>
         </ScrollView>
     );
@@ -54,9 +73,9 @@ export default PerfilVisualizadoPorUsuario;
 const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
-        alignItems: 'center',
+        alignItems: "center",
         padding: 20,
-        backgroundColor: '#fff',
+        backgroundColor: "#fff",
     },
     profileImage: {
         width: 150,
@@ -66,28 +85,28 @@ const styles = StyleSheet.create({
     },
     nameText: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontWeight: "bold",
         color: colors.primary,
         marginBottom: 10,
-        textAlign: 'center',
+        textAlign: "center",
     },
     infoText: {
         fontSize: 18,
-        color: '#333',
+        color: "#333",
         marginBottom: 5,
-        textAlign: 'center',
+        textAlign: "center",
     },
     sectionTitle: {
         fontSize: 20,
-        fontWeight: 'bold',
+        fontWeight: "bold",
         color: colors.primary,
         marginVertical: 15,
-        textAlign: 'center',
+        textAlign: "center",
     },
     descriptionText: {
         fontSize: 16,
-        color: '#666',
-        textAlign: 'center',
+        color: "#666",
+        textAlign: "center",
         marginBottom: 20,
     },
     chatButton: {
@@ -95,12 +114,12 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 25,
         borderRadius: 8,
-        alignItems: 'center',
+        alignItems: "center",
         marginTop: 20,
     },
     chatButtonText: {
-        color: '#fff',
+        color: "#fff",
         fontSize: 18,
-        fontWeight: 'bold',
+        fontWeight: "bold",
     },
 });

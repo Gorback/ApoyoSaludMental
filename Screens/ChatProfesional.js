@@ -3,14 +3,18 @@ import { TouchableOpacity } from 'react-native';
 import { GiftedChat } from 'react-native-gifted-chat';
 import { collection, addDoc, orderBy, query, onSnapshot, where, doc, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
-import { auth, database as db } from '../config/firebase';
+import { auth, database } from '../config/firebase';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import colors from '../colors';
 
 export default function ChatProfesional() {
     const [messages, setMessages] = useState([]);
+<<<<<<< HEAD
     const [userPhoto, setUserPhoto] = useState("https://via.placeholder.com/150"); // Imagen de respaldo
+=======
+    const [professionalPhoto, setProfessionalPhoto] = useState(null);
+>>>>>>> 2c2c0ff (Las fotos de los usuarios y profesional se muestran en el chat y agregue los servicios de mercado pago)
     const navigation = useNavigation();
     const route = useRoute();
     const { userId } = route.params;
@@ -30,6 +34,7 @@ export default function ChatProfesional() {
     }, [navigation]);
 
     useEffect(() => {
+<<<<<<< HEAD
         const fetchUserPhoto = async () => {
             const userDocRef = doc(db, 'users', userId);
             const userDocSnap = await getDoc(userDocRef);
@@ -39,9 +44,22 @@ export default function ChatProfesional() {
             }
         };
         fetchUserPhoto();
+=======
+        const fetchProfessionalPhoto = async () => {
+            const docRef = doc(database, 'profesionales', auth.currentUser.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const photoBase64 = docSnap.data().photoURL;
+                setProfessionalPhoto(`data:image/jpeg;base64,${photoBase64}`);
+            } else {
+                setProfessionalPhoto("https://via.placeholder.com/150");
+            }
+        };
+        fetchProfessionalPhoto();
+>>>>>>> 2c2c0ff (Las fotos de los usuarios y profesional se muestran en el chat y agregue los servicios de mercado pago)
 
         const currentProfessionalId = auth.currentUser.uid;
-        const collectionRef = collection(db, 'chats');
+        const collectionRef = collection(database, 'chats');
         const q = query(
             collectionRef,
             where('participants', 'array-contains', currentProfessionalId),
@@ -69,7 +87,7 @@ export default function ChatProfesional() {
         setMessages(previousMessages => GiftedChat.append(previousMessages, messages));
 
         const { _id, createdAt, text, user } = messages[0];
-        addDoc(collection(db, 'chats'), {
+        addDoc(collection(database, 'chats'), {
             _id,
             createdAt,
             text,
@@ -84,7 +102,11 @@ export default function ChatProfesional() {
             onSend={messages => onSend(messages)}
             user={{
                 _id: auth?.currentUser?.uid,
+<<<<<<< HEAD
                 avatar: userPhoto,
+=======
+                avatar: professionalPhoto, // Foto del profesional
+>>>>>>> 2c2c0ff (Las fotos de los usuarios y profesional se muestran en el chat y agregue los servicios de mercado pago)
             }}
             messagesContainerStyle={{ backgroundColor: '#fff' }}
             textInputStyle={{ backgroundColor: '#fff', borderRadius: 20 }}

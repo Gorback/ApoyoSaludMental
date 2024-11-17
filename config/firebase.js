@@ -5,6 +5,9 @@ import { getStorage } from "firebase/storage"; // Importar Firebase Storage
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 
+export const MERCADO_PAGO_PUBLIC_KEY = Constants.expoConfig.extra.MERCADO_PAGO_PUBLIC_KEY;
+export const MERCADO_PAGO_ACCESS_TOKEN = Constants.expoConfig.extra.MERCADO_PAGO_ACCESS_TOKEN;
+
 // Firebase config
 const firebaseConfig = {
     apiKey: Constants.expoConfig.extra.apiKey,
