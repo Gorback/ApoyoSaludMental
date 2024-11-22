@@ -10,7 +10,7 @@ import colors from '../colors';
 
 export default function Chat() {
     const [messages, setMessages] = useState([]);
-    const [professionalPhoto, setProfessionalPhoto] = useState("https://via.placeholder.com/150"); // Imagen de respaldo
+    const [userPhoto, setUserPhoto] = useState(null);
     const navigation = useNavigation();
     const route = useRoute();
     const { professionalId } = route.params;
@@ -30,15 +30,17 @@ export default function Chat() {
     }, [navigation]);
 
     useEffect(() => {
-        const fetchProfessionalPhoto = async () => {
-            const userDocRef = doc(database, 'profesionales', professionalId);
+        const fetchUserPhoto = async () => {
+            const userDocRef = doc(database, 'users', auth.currentUser.uid);
             const userDocSnap = await getDoc(userDocRef);
             if (userDocSnap.exists()) {
                 const photoBase64 = userDocSnap.data().photoURL;
-                setProfessionalPhoto(`data:image/jpeg;base64,${photoBase64}`);
+                setUserPhoto(`data:image/jpeg;base64,${photoBase64}`);
+            } else {
+                setUserPhoto("https://via.placeholder.com/150");
             }
         };
-        fetchProfessionalPhoto();
+        fetchUserPhoto();
 
         const currentUserId = auth.currentUser.uid;
         const collectionRef = collection(database, 'chats');
@@ -84,7 +86,7 @@ export default function Chat() {
             onSend={messages => onSend(messages)}
             user={{
                 _id: auth?.currentUser?.uid,
-                avatar: professionalPhoto,
+                avatar: userPhoto, // Foto del usuario
             }}
             messagesContainerStyle={{ backgroundColor: '#fff' }}
             textInputStyle={{ backgroundColor: '#fff', borderRadius: 20 }}

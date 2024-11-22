@@ -19,9 +19,8 @@ const PerfilVisualizadoPorUsuario = () => {
     const navigation = useNavigation();
     const { professional } = route.params;
 
-    const handleChatPress = () => {
-        // Navega a la pantalla de chat y pasa el ID del profesional como parámetro
-        navigation.navigate("Chat", { professionalId: professional.id });
+    const handlePaymentPress = () => {
+        navigation.navigate("PAGOMercadoPago", { preferenceId: professional.tarifa });
     };
 
     return (
@@ -41,14 +40,14 @@ const PerfilVisualizadoPorUsuario = () => {
             <Text style={styles.sectionTitle}>Descripción</Text>
             <Text style={styles.descriptionText}>{professional.descripcion}</Text>
 
-            {/* Botón para iniciar chat */}
-            <TouchableOpacity style={styles.chatButton} onPress={handleChatPress}>
-                <Text style={styles.chatButtonText}>Iniciar Chat</Text>
+            <TouchableOpacity style={styles.chatButton} onPress={handlePaymentPress}>
+                <Text style={styles.chatButtonText}>Pagar</Text>
             </TouchableOpacity>
         </ScrollView>
     );
 };
 
+// Exportación al final del archivo
 export default PerfilVisualizadoPorUsuario;
 
 const styles = StyleSheet.create({
