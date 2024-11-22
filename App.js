@@ -18,13 +18,14 @@ import Home from "./Screens/Home";
 import HomeProfesional from "./Screens/HomeProfesional";
 import OpcionesPerfil from "./Screens/OpcionesPerfil";
 import PerfilVisualizadoPorProfesional from "./Screens/Perfil_Visualizado_Por_Usuario";
-import RegistrosChat from "./Screens/RegistrosChat";
-import OpcionesUsuarios from "./Screens/OpcionesUsuarios";
-import RegistroChatProfesional from "./Screens/RegistroChatProfesional";
-import Mercadopago from "./Screens/Mercadopago";
-import PaymentStatusScreen from "./Screens/PaymentStatusScreen";
+import RegistrosChat from "./Screens/RegistrosChat"
+import OpcionesUsuarios from "./Screens/OpcionesUsuarios"
+import RegistroChatProfesional from "./Screens/RegistroChatProfesional"
+import PAGOMercadoPago from "./Screens/PAGOMercadoPago"
+import Credito from "./Screens/Credito"
+import Debito from "./Screens/Debito"
+import ProcesandoPago from "./Screens/ProcesandoPago"
 
-// Crear contextos y stack
 const Stack = createNativeStackNavigator();
 const AuthenticateUserContext = createContext({});
 
@@ -46,12 +47,15 @@ function ChatStack() {
       <Stack.Screen name="PerfilVisualizadoPorProfesional" component={PerfilVisualizadoPorProfesional} />
       <Stack.Screen name="RegistrosChat" component={RegistrosChat} />
       <Stack.Screen name="Chat" component={Chat} />
-      <Stack.Screen name="OpcionesUsuarios" component={OpcionesUsuarios} />
-      <Stack.Screen name="Mercadopago" component={Mercadopago} />
-      <Stack.Screen name="PaymentStatusScreen" component={PaymentStatusScreen} />
+      <Stack.Screen name="OpcionesUsuarios" component={OpcionesUsuarios}/>
+      <Stack.Screen name="PAGOMercadoPago" component={PAGOMercadoPago}/>
+      <Stack.Screen name="Credito" component={Credito}/>
+      <Stack.Screen name="Debito" component={Debito}/>
+      <Stack.Screen name="ProcesandoPago" component={ProcesandoPago}/>
     </Stack.Navigator>
   );
 }
+
 
 // Stack para profesionales
 function ChatStackProfesional() {

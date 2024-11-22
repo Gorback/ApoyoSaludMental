@@ -1,8 +1,7 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking } from "react-native";
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import colors from '../colors';
-import { createPaymentPreference } from "../Services/mercadoPagoService"; // Asegúrate de usar la ruta correcta
+import colors from "../colors";
 
 const calculateAge = (birthdate) => {
     const today = new Date();
@@ -20,9 +19,8 @@ const PerfilVisualizadoPorUsuario = () => {
     const navigation = useNavigation();
     const { professional } = route.params;
 
-    const handlePaymentAndChat = async () => {
+    const handlePaymentAndChat = () => {
         try {
-            // Validaciones básicas
             if (!professional.tarifa || professional.tarifa <= 0) {
                 throw new Error("La tarifa del profesional no es válida.");
             }
@@ -31,14 +29,11 @@ const PerfilVisualizadoPorUsuario = () => {
                 throw new Error("El nombre del profesional no está disponible.");
             }
 
-            // Crear la preferencia de pago
-            const paymentUrl = await createPaymentPreference({
-                title: `Sesión con ${professional.userProfesional}`,
-                price: professional.tarifa,
-                userEmail: "usuario@example.com", // Reemplaza con el email del usuario autenticado
+            navigation.navigate("PAGOMercadoPago", {
+                preferenceId: professional.tarifa,
+                professionalName: professional.userProfesional,
+                professionalPhoto: professional.photoURL,
             });
-
-            Linking.openURL(paymentUrl); // Redirige al checkout de Mercado Pago
         } catch (error) {
             Alert.alert("Error", error.message || "No se pudo procesar el pago.");
         }
