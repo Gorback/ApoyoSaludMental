@@ -1,25 +1,52 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from "../config/firebase"; // Asegúrate de que este archivo apunte a tu configuración correcta de Firebase
 
 export default function ProcesandoPago() {
     const navigation = useNavigation();
-    const route = useRoute(); // Hook para obtener los parámetros de navegación
-    const { professionalId } = route.params || {}; // Obtenemos `professionalId` directamente
+    const route = useRoute();
+    const { idUsuario, idProfesional, chatId, mensajeInicial } = route.params || {};
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (!professionalId) {
-                console.error("Error: No se encontró el parámetro 'professionalId'");
+        const procesarPago = async () => {
+            if (!idUsuario || !idProfesional || !chatId || !mensajeInicial) {
+                console.error('Faltan parámetros para procesar el pago:', {
+                    idUsuario,
+                    idProfesional,
+                    chatId,
+                    mensajeInicial,
+                });
                 return;
             }
 
-            // Navegar directamente al chat
-            navigation.navigate('Chat', { professionalId });
-        }, 5000); // Simula 5 segundos de espera
+            try {
+                // Referencia al documento del chat en Firestore
+                const docRef = doc(db, 'RegistroChat', chatId);
+                const docSnap = await getDoc(docRef);
 
-        return () => clearTimeout(timer); // Limpia el temporizador al desmontar
-    }, [navigation, professionalId]);
+                if (docSnap.exists()) {
+                    console.log('El chat ya existe en Firebase');
+                } else {
+                    console.log('Creando un nuevo chat en Firebase');
+                    await setDoc(docRef, {
+                        idUsuario,
+                        idProfesional,
+                        mensajes: [mensajeInicial], // Mensaje inicial enviado por el usuario
+                        timestamp: new Date().toISOString(),
+                    });
+                }
+
+                // Redirigir al componente del chat
+                navigation.replace('Chat', { chatId });
+            } catch (error) {
+                console.error('Error al procesar el pago y crear el chat:', error);
+            }
+        };
+
+        procesarPago();
+    }, [idUsuario, idProfesional, chatId, mensajeInicial, navigation]);
 
     return (
         <View style={styles.container}>
@@ -29,7 +56,7 @@ export default function ProcesandoPago() {
                 style={styles.logo}
             />
             {/* Mensaje */}
-            <Text style={styles.message}>Procesando pago...</Text>
+            <Text style={styles.message}>Procesando tu pago...</Text>
             {/* Indicador de carga */}
             <ActivityIndicator size="large" color="#00bcd4" />
         </View>
@@ -41,7 +68,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#03AEEF', // Celeste Mercado Pago
+        backgroundColor: '#03AEEF',
     },
     logo: {
         width: 200,

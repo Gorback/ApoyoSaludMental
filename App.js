@@ -18,13 +18,13 @@ import Home from "./Screens/Home";
 import HomeProfesional from "./Screens/HomeProfesional";
 import OpcionesPerfil from "./Screens/OpcionesPerfil";
 import PerfilVisualizadoPorProfesional from "./Screens/Perfil_Visualizado_Por_Usuario";
-import RegistrosChat from "./Screens/RegistrosChat"
-import OpcionesUsuarios from "./Screens/OpcionesUsuarios"
-import RegistroChatProfesional from "./Screens/RegistroChatProfesional"
-import PAGOMercadoPago from "./Screens/PAGOMercadoPago"
-import Credito from "./Screens/Credito"
-import Debito from "./Screens/Debito"
-import ProcesandoPago from "./Screens/ProcesandoPago"
+import RegistrosChat from "./Screens/RegistrosChat";
+import OpcionesUsuarios from "./Screens/OpcionesUsuarios";
+import RegistroChatProfesional from "./Screens/RegistroChatProfesional";
+import PAGOMercadoPago from "./Screens/PAGOMercadoPago";
+import Credito from "./Screens/Credito";
+import Debito from "./Screens/Debito";
+import ProcesandoPago from "./Screens/ProcesandoPago";
 
 const Stack = createNativeStackNavigator();
 const AuthenticateUserContext = createContext({});
@@ -39,7 +39,7 @@ const AuthenticateUserProvider = ({ children }) => {
   );
 };
 
-// Stack para usuarios
+// Stack para usuarios generales
 function ChatStack() {
   return (
     <Stack.Navigator initialRouteName="Home">
@@ -52,19 +52,22 @@ function ChatStack() {
       <Stack.Screen name="Credito" component={Credito}/>
       <Stack.Screen name="Debito" component={Debito}/>
       <Stack.Screen name="ProcesandoPago" component={ProcesandoPago}/>
+      {/* Añadimos ChatProfesional aquí para que cualquier usuario pueda acceder a él si es necesario */}
+      <Stack.Screen name="ChatProfesional" component={ChatProfesional} />
     </Stack.Navigator>
   );
 }
-
 
 // Stack para profesionales
 function ChatStackProfesional() {
   return (
     <Stack.Navigator initialRouteName="HomeProfesional">
       <Stack.Screen name="HomeProfesional" component={HomeProfesional} />
+      <Stack.Screen name="RegistroChatProfesional" component={RegistroChatProfesional} />
       <Stack.Screen name="ChatProfesional" component={ChatProfesional} />
       <Stack.Screen name="OpcionesPerfil" component={OpcionesPerfil} />
-      <Stack.Screen name="RegistroChatProfesional" component={RegistroChatProfesional} />
+      {/* Añadimos Chat aquí para los profesionales */}
+      <Stack.Screen name="Chat" component={Chat} />
     </Stack.Navigator>
   );
 }

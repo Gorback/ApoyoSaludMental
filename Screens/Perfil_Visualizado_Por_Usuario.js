@@ -29,8 +29,12 @@ const PerfilVisualizadoPorUsuario = () => {
                 throw new Error("El nombre del profesional no está disponible.");
             }
 
+            // Navegar a la pantalla de pago con los parámetros correctos
             navigation.navigate("PAGOMercadoPago", {
                 preferenceId: professional.tarifa,
+                chatParams: {
+                    professionalId: professional.id, // ID único del profesional
+                },
                 professionalName: professional.userProfesional,
                 professionalPhoto: professional.photoURL,
             });
