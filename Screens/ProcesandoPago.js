@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Image } from "react-native";
 import { useNavigation, useRoute, CommonActions } from "@react-navigation/native";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { database } from "../config/firebase";
+import { doc, setDoc, getDoc, addDoc, collection } from "firebase/firestore";
+import { auth, database } from "../config/firebase";
 
 export default function ProcesandoPago() {
     const navigation = useNavigation();
     const route = useRoute();
-    const { idUsuario, idProfesional, chatId, mensajeInicial } = route.params || {};
+    const { idUsuario, idProfesional, chatId, mensajeInicial, tarifa } = route.params || {};
     const [loadingMessage, setLoadingMessage] = useState("Procesando tu pago...");
     const [isError, setIsError] = useState(false);
 
@@ -15,19 +15,27 @@ export default function ProcesandoPago() {
         navigation.setOptions({ headerShown: false });
     }, [navigation]);
 
-    
     useEffect(() => {
-        if (!idUsuario || !idProfesional || !chatId || !mensajeInicial) {
-            console.error("Error: Parámetros faltantes:", { idUsuario, idProfesional, chatId, mensajeInicial });
+        console.log("Parámetros recibidos en ProcesandoPago:", {
+            idUsuario,
+            idProfesional,
+            chatId,
+            mensajeInicial,
+            tarifa,
+        });
+
+        if (!idUsuario || !idProfesional || !chatId || !mensajeInicial || tarifa === undefined) {
+            console.error("Parámetros incompletos detectados en ProcesandoPago.");
             setIsError(true);
             setLoadingMessage("Error al procesar el pago. Parámetros incompletos.");
             return;
         }
 
+        // ProcesandoPago.js
         const procesarPago = async () => {
             try {
                 setLoadingMessage("Consultando al banco...");
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise((resolve) => setTimeout(resolve, 2000));
 
                 const docRef = doc(database, "chats", chatId);
                 const docSnap = await getDoc(docRef);
@@ -35,22 +43,27 @@ export default function ProcesandoPago() {
                 if (!docSnap.exists()) {
                     await setDoc(docRef, {
                         participants: [idUsuario, idProfesional],
-                        lastMessage: null,
+                        lastMessage: mensajeInicial,
                         createdAt: new Date(),
-                        chatId: chatId,
+                        chatId,
                     });
                 }
 
+                // **Registra el pago en la colección `pagos`**
+                await addDoc(collection(database, "pagos"), {
+                    professionalId: idProfesional,
+                    idUsuario: idUsuario,
+                    userName: auth.currentUser?.displayName || "Usuario",
+                    tarifa: tarifa,
+                    createdAt: new Date(),
+                });
+
                 setLoadingMessage("Pago realizado con éxito.");
 
-                // Redirigir al Chat y limpiar la pila de navegación
                 navigation.dispatch(
                     CommonActions.reset({
                         index: 1,
-                        routes: [
-                            { name: "Home" }, // Deja el Home en la pila
-                            { name: "Chat", params: { professionalId: idProfesional, chatId } }, // Navega al Chat
-                        ],
+                        routes: [{ name: "Home" }, { name: "Chat", params: { professionalId: idProfesional, chatId } }],
                     })
                 );
             } catch (error) {
@@ -60,8 +73,10 @@ export default function ProcesandoPago() {
             }
         };
 
+
         procesarPago();
-    }, [idUsuario, idProfesional, chatId, mensajeInicial]);
+    }, [idUsuario, idProfesional, chatId, mensajeInicial, tarifa]);
+
 
     return (
         <View style={styles.container}>

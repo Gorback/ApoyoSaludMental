@@ -176,6 +176,7 @@ const Home = () => {
                     style={styles.callImage}
                 />
             </TouchableOpacity>
+            
         </View>
     );
 };

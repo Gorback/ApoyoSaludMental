@@ -25,6 +25,8 @@ import PAGOMercadoPago from "./Screens/PAGOMercadoPago";
 import Credito from "./Screens/Credito";
 import Debito from "./Screens/Debito";
 import ProcesandoPago from "./Screens/ProcesandoPago";
+import HistorialPago from "./Screens/HistorialPago";
+
 
 const Stack = createNativeStackNavigator();
 const AuthenticateUserContext = createContext({});
@@ -54,6 +56,8 @@ function ChatStack() {
       <Stack.Screen name="ProcesandoPago" component={ProcesandoPago}/>
       {/* Añadimos ChatProfesional aquí para que cualquier usuario pueda acceder a él si es necesario */}
       <Stack.Screen name="ChatProfesional" component={ChatProfesional} />
+      <Stack.Screen name="HistorialPago" component={HistorialPago} />
+
     </Stack.Navigator>
   );
 }
@@ -68,6 +72,8 @@ function ChatStackProfesional() {
       <Stack.Screen name="OpcionesPerfil" component={OpcionesPerfil} />
       {/* Añadimos Chat aquí para los profesionales */}
       <Stack.Screen name="Chat" component={Chat} />
+      <Stack.Screen name="HistorialPago" component={HistorialPago} />
+
     </Stack.Navigator>
   );
 }

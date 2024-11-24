@@ -1,37 +1,67 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Linking } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
-
-import * as Font from 'expo-font';
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Linking } from "react-native";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import * as Font from "expo-font";
 
 export default function PAGOMercadoPago() {
     const [fontsLoaded, setFontsLoaded] = useState(false);
     const route = useRoute();
     const navigation = useNavigation();
-    const { preferenceId: tarifa, chatParams, professionalName } = route.params;
+    const { tarifa, chatParams, professionalName } = route.params || {}; 
 
     useEffect(() => {
-        // Ocultar el encabezado y el botón de retroceso
         navigation.setOptions({ headerShown: false });
     }, [navigation]);
 
     useEffect(() => {
         const loadFonts = async () => {
             await Font.loadAsync({
-                'ProximaNova-Light': {
-                    uri: 'https://http2.mlstatic.com/ui/webfonts/v3.0.0/proxima-nova/proximanova-light.ttf',
+                "ProximaNova-Light": {
+                    uri: "https://http2.mlstatic.com/ui/webfonts/v3.0.0/proxima-nova/proximanova-light.ttf",
                 },
-                'ProximaNova-Regular': {
-                    uri: 'https://http2.mlstatic.com/ui/webfonts/v3.0.0/proxima-nova/proximanova-regular.ttf',
+                "ProximaNova-Regular": {
+                    uri: "https://http2.mlstatic.com/ui/webfonts/v3.0.0/proxima-nova/proximanova-regular.ttf",
                 },
-                'ProximaNova-Semibold': {
-                    uri: 'https://http2.mlstatic.com/ui/webfonts/v3.0.0/proxima-nova/proximanova-semibold.ttf',
+                "ProximaNova-Semibold": {
+                    uri: "https://http2.mlstatic.com/ui/webfonts/v3.0.0/proxima-nova/proximanova-semibold.ttf",
                 },
             });
             setFontsLoaded(true);
         };
         loadFonts();
     }, []);
+
+    useEffect(() => {
+        console.log("Parámetros recibidos en PAGOMercadoPago:", route.params);
+    }, [route.params]);
+
+    const handlePagoConTarjetaCredito = () => {
+        // Navegar a Credito con todos los parámetros necesarios
+        navigation.navigate("Credito", {
+            chatParams: {
+                idUsuario: chatParams?.idUsuario,
+                idProfesional: chatParams?.idProfesional,
+                chatId: chatParams?.chatId,
+                mensajeInicial: chatParams?.mensajeInicial,
+            },
+            tarifa, // Tarifa actual
+            professionalName, // Nombre del profesional
+        });
+    };
+
+    const handlePagoConTarjetaDebito = () => {
+        // Navegar a Debito con todos los parámetros necesarios
+        navigation.navigate("Debito", {
+            chatParams: {
+                idUsuario: chatParams?.idUsuario,
+                idProfesional: chatParams?.idProfesional,
+                chatId: chatParams?.chatId,
+                mensajeInicial: chatParams?.mensajeInicial,
+            },
+            tarifa, // Tarifa actual
+            professionalName, // Nombre del profesional
+        });
+    };
 
     const handleLinkPress = (url) => {
         Linking.openURL(url);
@@ -43,27 +73,24 @@ export default function PAGOMercadoPago() {
 
     return (
         <ScrollView style={styles.container}>
-            {/* Close Button */}
             <TouchableOpacity style={styles.closeButton}>
                 <Text style={styles.closeText}>×</Text>
             </TouchableOpacity>
 
-            {/* Title */}
             <Text style={styles.title}>¿Cómo quieres pagar?</Text>
 
-            {/* Mercado Pago Options */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Con tu cuenta de Mercado Pago</Text>
                 <TouchableOpacity style={styles.paymentOption}>
                     <Image
-                        source={require('../assets/a8d1e2ded2b3264ec618c059af0c0b70.png')}
+                        source={require("../assets/a8d1e2ded2b3264ec618c059af0c0b70.png")}
                         style={styles.icon}
                     />
                     <Text style={styles.optionText}>Ingresar con mi cuenta</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.paymentOption}>
                     <Image
-                        source={require('../assets/icons8-smartphone-48.png')}
+                        source={require("../assets/icons8-smartphone-48.png")}
                         style={styles.icon}
                     />
                     <Text style={styles.optionText}>Usar la app de Mercado Pago</Text>
@@ -74,7 +101,7 @@ export default function PAGOMercadoPago() {
                 <Text style={styles.sectionTitle}>Sin cuenta de Mercado Pago</Text>
                 <TouchableOpacity
                     style={styles.paymentOption}
-                    onPress={() => navigation.navigate("Credito", { preferenceId: tarifa, ...chatParams, professionalName })}
+                    onPress={handlePagoConTarjetaCredito}
                 >
                     <Image
                         source={require("../assets/icons8-magnetic-card-32.png")}
@@ -84,7 +111,7 @@ export default function PAGOMercadoPago() {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.paymentOption}
-                    onPress={() => navigation.navigate("Debito", { preferenceId: tarifa, ...chatParams, professionalName })}
+                    onPress={handlePagoConTarjetaDebito}
                 >
                     <Image
                         source={require("../assets/icons8-parte-trasera-de-tarjeta-bancaria-48.png")}
@@ -94,12 +121,13 @@ export default function PAGOMercadoPago() {
                 </TouchableOpacity>
             </View>
 
-            {/* Payment Details */}
             <View style={styles.paymentDetails}>
                 <Text style={styles.detailsTitle}>Detalles del pago</Text>
                 <View style={styles.detailsRow}>
-                    <Text style={styles.detailsLabel}>Sesion</Text>
-                    <Text style={styles.detailsValue}>{`$ ${tarifa}`}</Text>
+                    <Text style={styles.detailsLabel}>Sesión</Text>
+                    <Text style={styles.detailsValue}>
+                        {tarifa ? `$ ${tarifa}` : "Tarifa no disponible"}
+                    </Text>
                 </View>
             </View>
         </ScrollView>
@@ -109,24 +137,24 @@ export default function PAGOMercadoPago() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: "#fff",
         padding: 16,
     },
     closeButton: {
-        alignSelf: 'flex-end',
+        alignSelf: "flex-end",
         padding: 8,
     },
     closeText: {
         fontSize: 24,
-        fontWeight: 'bold',
-        color: '#eee',
+        fontWeight: "bold",
+        color: "#eee",
     },
     title: {
         fontSize: 20,
-        fontFamily: 'ProximaNova-Regular',
-        fontWeight: '600',
-        color: '#009ee3',
-        textAlign: 'center',
+        fontFamily: "ProximaNova-Regular",
+        fontWeight: "600",
+        color: "#009ee3",
+        textAlign: "center",
         marginBottom: 16,
     },
     section: {
@@ -134,57 +162,56 @@ const styles = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 16,
-        fontFamily: 'ProximaNova-Semibold',
-        color: '#009ee3',
+        fontFamily: "ProximaNova-Semibold",
+        color: "#009ee3",
         marginBottom: 8,
     },
     paymentOption: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#f5f5f5",
         padding: 12,
         borderRadius: 6,
         borderWidth: 1,
-        borderColor: '#bfbfbf',
+        borderColor: "#bfbfbf",
         marginBottom: 8,
     },
     icon: {
         width: 40,
         height: 40,
         marginRight: 12,
-        resizeMode: 'contain',
+        resizeMode: "contain",
     },
     optionText: {
         fontSize: 14,
-        fontFamily: 'ProximaNova-Regular',
-        color: '#333',
+        fontFamily: "ProximaNova-Regular",
+        color: "#333",
     },
     paymentDetails: {
-        backgroundColor: '#fff',
+        backgroundColor: "#fff",
         padding: 16,
         borderRadius: 6,
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: "#ddd",
     },
     detailsTitle: {
         fontSize: 16,
-        fontFamily: 'ProximaNova-Semibold',
-        color: '#333',
+        fontFamily: "ProximaNova-Semibold",
+        color: "#333",
         marginBottom: 8,
     },
     detailsRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+        flexDirection: "row",
+        justifyContent: "space-between",
     },
     detailsLabel: {
         fontSize: 14,
-        color: '#666',
-        fontFamily: 'ProximaNova-Light',
-        left: 2,
+        color: "#666",
+        fontFamily: "ProximaNova-Light",
     },
     detailsValue: {
         fontSize: 14,
-        fontFamily: 'ProximaNova-Regular',
-        color: '#333',
+        fontFamily: "ProximaNova-Regular",
+        color: "#333",
     },
 });

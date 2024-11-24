@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { AntDesign } from "@expo/vector-icons";
+import { auth } from "../config/firebase"; // Importa `auth` desde Firebase
 import colors from "../colors";
 
 const calculateAge = (birthdate) => {
@@ -20,38 +21,34 @@ const PerfilVisualizadoPorUsuario = () => {
     const navigation = useNavigation();
     const { professional } = route.params;
 
-    // Ocultar la barra superior
     useEffect(() => {
         navigation.setOptions({ headerShown: false });
     }, [navigation]);
 
-    const handlePaymentAndChat = () => {
-        if (!professional.tarifa || professional.tarifa <= 0) {
-            Alert.alert("Error", "La tarifa del profesional no es válida.");
+    const handlePagoPress = () => {
+        if (!professional.id || !professional.tarifa || !auth.currentUser?.uid) {
+            Alert.alert("Error", "Faltan datos del profesional para realizar el pago.");
             return;
         }
-
-        if (!professional.id) {
-            Alert.alert("Error", "No se encontró el ID del profesional.");
-            return;
-        }
-
+    
         navigation.navigate("PAGOMercadoPago", {
-            preferenceId: professional.tarifa,
             chatParams: {
-                professionalId: professional.id,
+                idUsuario: auth.currentUser.uid,
+                idProfesional: professional.id,
+                chatId: `${auth.currentUser.uid}_${professional.id}`,
+                mensajeInicial: `Hola, soy ${auth.currentUser.displayName || "Usuario"}. Me gustaría iniciar una consulta contigo.`,
             },
+            tarifa: professional.tarifa,
             professionalName: professional.userProfesional,
-            professionalPhoto: professional.photoURL,
         });
     };
+    
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                <AntDesign name="arrowleft" size={24} top={20} color="orange" />
+                <AntDesign name="arrowleft" size={24} color="orange" />
             </TouchableOpacity>
-            {/* Contenedor cerrado */}
             <View style={styles.professionalContainer}>
                 <Image
                     source={{
@@ -68,8 +65,7 @@ const PerfilVisualizadoPorUsuario = () => {
                 <Text style={styles.sectionTitle}>Descripción</Text>
                 <Text style={styles.descriptionText}>{professional.descripcion}</Text>
             </View>
-
-            <TouchableOpacity style={styles.chatButton} onPress={handlePaymentAndChat}>
+            <TouchableOpacity style={styles.chatButton} onPress={handlePagoPress}>
                 <Text style={styles.chatButtonText}>Pagar Sesión</Text>
             </TouchableOpacity>
         </ScrollView>
@@ -77,6 +73,9 @@ const PerfilVisualizadoPorUsuario = () => {
 };
 
 export default PerfilVisualizadoPorUsuario;
+
+// Estilos no modificados
+
 
 const styles = StyleSheet.create({
     container: {
@@ -93,7 +92,7 @@ const styles = StyleSheet.create({
     },
     professionalContainer: {
         width: "90%",
-        backgroundColor: "#F6F7FB", // Fondo similar a los otros contenedores
+        backgroundColor: "#F6F7FB",
         borderRadius: 20,
         padding: 20,
         alignItems: "center",
@@ -102,7 +101,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 4,
         elevation: 5,
-        marginBottom: 20, // Espaciado con otros elementos
+        marginBottom: 20,
     },
     profileImage: {
         width: 150,

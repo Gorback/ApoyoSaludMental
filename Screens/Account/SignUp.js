@@ -35,13 +35,29 @@ export default function SignUp({ navigation }) {
         });
     
         if (!result.canceled && result.assets && result.assets.length > 0) {
-            const selectedUri = result.assets[0].uri; // Obtener el URI desde el array assets
-            setImage(selectedUri); // Guarda el URI en el estado
-            console.log("Selected image URI:", selectedUri); // Confirmar que se obtiene el URI correcto
+            const selectedUri = result.assets[0].uri;
+    
+            try {
+                const response = await fetch(selectedUri);
+                const blob = await response.blob();
+    
+                if (blob.size > 1000000) { // Límite de 1 MB
+                    Alert.alert(
+                        "Imagen demasiado pesada",
+                        "La imagen seleccionada es demasiado pesada. Por favor selecciona una imagen menor a 1 MB."
+                    );
+                    return;
+                }
+    
+                setImage(selectedUri); // Establece la imagen solo si cumple el tamaño
+            } catch (error) {
+                Alert.alert("Error", "Ocurrió un problema al procesar la imagen.");
+            }
         } else {
             Alert.alert("Error", "No se seleccionó ninguna imagen.");
         }
     };
+    
 
     const uploadImageAsBase64 = async (uri) => {
         try {

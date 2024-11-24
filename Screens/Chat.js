@@ -19,7 +19,6 @@ export default function Chat() {
     const onSignOut = () => {
         signOut(auth).catch(error => console.log('Error logging out: ', error));
     };
-    
 
     useLayoutEffect(() => {
         // Actualizar el nombre del profesional en la barra superior
@@ -85,19 +84,20 @@ export default function Chat() {
 
         const unsubscribe = onSnapshot(q, querySnapshot => {
             setMessages(
-                querySnapshot.docs.map(doc => {
-                    const data = doc.data();
-                    return {
-                        _id: data._id || doc.id,
-                        createdAt: data.createdAt?.toDate?.() || new Date(),
-                        text: data.text || "", // Asegúrate de que el texto esté presente
-                        user: data.user || { _id: "sistema", name: "Sistema" },
-                    };
-                })
-                .filter(message => message.text.trim() !== "") // Filtra mensajes vacíos
+                querySnapshot.docs
+                    .filter(doc => doc.data().participants.includes(professionalId)) // Filtro agregado
+                    .map(doc => {
+                        const data = doc.data();
+                        return {
+                            _id: data._id || doc.id,
+                            createdAt: data.createdAt?.toDate?.() || new Date(),
+                            text: data.text || "", // Asegúrate de que el texto esté presente
+                            user: data.user || { _id: "sistema", name: "Sistema" },
+                        };
+                    })
+                    .filter(message => message.text.trim() !== "") // Filtra mensajes vacíos
             );
         });
-        
 
         return unsubscribe;
     }, [professionalId]);
@@ -109,9 +109,9 @@ export default function Chat() {
                 console.error("Error: ID del usuario no definido.");
                 return;
             }
-    
+
             setMessages(previousMessages => GiftedChat.append(previousMessages, messages));
-    
+
             const { _id, createdAt, text, user } = messages[0];
             addDoc(collection(database, 'chats'), {
                 _id,
@@ -125,7 +125,6 @@ export default function Chat() {
         },
         [professionalId]
     );
-    
 
     return (
         <GiftedChat

@@ -23,19 +23,44 @@ export default function SignUpProfesionalesDetail({ route, navigation }) {
     }, []);
 
     const pickImage = async () => {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+        if (!permissionResult.granted) {
+            Alert.alert("Permiso requerido", "Necesitamos permiso para acceder a tus fotos.");
+            return;
+        }
+    
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
             quality: 0.5,
         });
-
+    
         if (!result.canceled && result.assets && result.assets.length > 0) {
-            setImage(result.assets[0].uri);
+            const selectedUri = result.assets[0].uri;
+    
+            try {
+                const response = await fetch(selectedUri);
+                const blob = await response.blob();
+    
+                if (blob.size > 1000000) { // Límite de 1 MB
+                    Alert.alert(
+                        "Imagen demasiado pesada",
+                        "La imagen seleccionada es demasiado pesada. Por favor selecciona una imagen menor a 1 MB."
+                    );
+                    return;
+                }
+    
+                setImage(selectedUri); // Establece la imagen solo si cumple el tamaño
+            } catch (error) {
+                Alert.alert("Error", "Ocurrió un problema al procesar la imagen.");
+            }
         } else {
             Alert.alert("Error", "No se seleccionó ninguna imagen.");
         }
     };
+    
 
     const uploadImageAsBase64 = async (uri) => {
         const response = await fetch(uri);

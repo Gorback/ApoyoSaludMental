@@ -1,56 +1,52 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { auth } from '../config/firebase';
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
-export default function PagoTarjeta() {
-    const [cardNumber, setCardNumber] = useState('');
-    const [cardholderName, setCardholderName] = useState('');
-    const [expirationDate, setExpirationDate] = useState('');
-    const [securityCode, setSecurityCode] = useState('');
+export default function Debito() {
+    const [cardNumber, setCardNumber] = useState("");
+    const [cardholderName, setCardholderName] = useState("");
+    const [expirationDate, setExpirationDate] = useState("");
+    const [securityCode, setSecurityCode] = useState("");
     const navigation = useNavigation();
     const route = useRoute();
-    const { professionalId, professionalName } = route.params;
+    const { chatParams, tarifa, professionalName } = route.params || {};
 
-    // Ocultar encabezado y botón de retroceso
     useEffect(() => {
         navigation.setOptions({ headerShown: false });
     }, [navigation]);
 
     const formatCardNumber = (value) => {
-        const sanitizedValue = value.replace(/\D/g, ''); // Eliminar no numéricos
-        const formattedValue = sanitizedValue.replace(/(\d{4})(?=\d)/g, '$1 '); // XXXX XXXX XXXX XXXX
-        setCardNumber(formattedValue.substring(0, 19)); // Limitar a 19 caracteres
+        const sanitizedValue = value.replace(/\D/g, "");
+        const formattedValue = sanitizedValue.replace(/(\d{4})(?=\d)/g, "$1 ");
+        setCardNumber(formattedValue.substring(0, 19));
     };
 
     const formatExpirationDate = (value) => {
-        const sanitizedValue = value.replace(/\D/g, ''); // Eliminar no numéricos
-        const formattedValue = sanitizedValue.replace(/(\d{2})(\d{1,2})/, '$1/$2'); // MM/AA
-        setExpirationDate(formattedValue.substring(0, 5)); // Limitar a 5 caracteres
+        const sanitizedValue = value.replace(/\D/g, "");
+        const formattedValue = sanitizedValue.replace(/(\d{2})(\d{1,2})/, "$1/$2");
+        setExpirationDate(formattedValue.substring(0, 5));
     };
 
     const formatSecurityCode = (value) => {
-        const sanitizedValue = value.replace(/\D/g, ''); // Eliminar no numéricos
-        setSecurityCode(sanitizedValue.substring(0, 4)); // Limitar a 4 caracteres
+        const sanitizedValue = value.replace(/\D/g, "");
+        setSecurityCode(sanitizedValue.substring(0, 4));
     };
 
     const handlePayment = () => {
         if (!cardNumber || !cardholderName || !expirationDate || !securityCode) {
-            Alert.alert('Error', 'Por favor completa todos los campos.');
+            Alert.alert("Error", "Por favor completa todos los campos.");
             return;
         }
 
         if (cardNumber.length < 19 || expirationDate.length < 5 || securityCode.length < 3) {
-            Alert.alert('Error', 'Por favor verifica el formato de los campos.');
+            Alert.alert("Error", "Por favor verifica el formato de los campos.");
             return;
         }
 
-        navigation.navigate('ProcesandoPago', {
-            idUsuario: auth.currentUser?.uid,
-            idProfesional: professionalId,
-            chatId: `${auth.currentUser?.uid}_${professionalId}`,
-            mensajeInicial: `Hola, soy ${cardholderName}. Me gustaría iniciar una consulta contigo.`,
-            professionalName: professionalName,
+        navigation.navigate("ProcesandoPago", {
+            ...chatParams,
+            tarifa,
+            professionalName,
         });
     };
 
@@ -114,66 +110,66 @@ export default function PagoTarjeta() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#fff',
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#fff",
     },
     roundedBackground: {
-        width: '90%',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)', // Transparente para ver el fondo
-        borderRadius: 20, // Bordes redondeados
+        width: "90%",
+        backgroundColor: "rgba(255, 255, 255, 0.9)",
+        borderRadius: 20,
         padding: 20,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 4,
         elevation: 5,
     },
     content: {
-        alignItems: 'center',
+        alignItems: "center",
     },
     title: {
         fontSize: 20,
-        fontWeight: 'bold',
-        color: '#009EE3',
+        fontWeight: "bold",
+        color: "#009EE3",
         marginBottom: 20,
-        textAlign: 'center',
+        textAlign: "center",
     },
     inputContainer: {
         marginBottom: 20,
-        width: '100%',
+        width: "100%",
     },
     label: {
         fontSize: 14,
-        color: '#333',
+        color: "#333",
         marginBottom: 5,
     },
     input: {
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: "#ddd",
         borderRadius: 6,
         padding: 10,
         fontSize: 16,
-        backgroundColor: '#F6F7FB',
+        backgroundColor: "#F6F7FB",
     },
     row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
+        flexDirection: "row",
+        justifyContent: "space-between",
+        width: "100%",
     },
     halfWidth: {
-        width: '48%',
+        width: "48%",
     },
     button: {
-        backgroundColor: '#009EE3',
+        backgroundColor: "#009EE3",
         padding: 15,
         borderRadius: 6,
-        alignItems: 'center',
-        width: '100%',
+        alignItems: "center",
+        width: "100%",
     },
     buttonText: {
-        color: '#fff',
+        color: "#fff",
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: "bold",
     },
 });

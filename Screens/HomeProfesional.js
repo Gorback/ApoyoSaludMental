@@ -97,6 +97,21 @@ const HomeProfesional = () => {
                         >
                             <Text style={styles.editButtonText}>Editar</Text>
                         </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.paymentHistoryButton}
+                            onPress={() => {
+                                const professionalId = auth.currentUser?.uid; // Obtenemos el ID del usuario autenticado
+                                if (!professionalId) {
+                                    Alert.alert("Error", "No se pudo obtener el ID del profesional.");
+                                    return;
+                                }
+                                navigation.navigate("HistorialPago", { professionalId }); // Navegamos con el ID del profesional
+                            }}
+                        >
+                            <Text style={styles.paymentHistoryButtonText}>Ver Historial de Pagos</Text>
+                        </TouchableOpacity>
+
+
                     </View>
                 </View>
             </ScrollView>
@@ -209,4 +224,17 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
+    paymentHistoryButton: {
+        backgroundColor: colors.primary,
+        padding: 10,
+        borderRadius: 8,
+        alignItems: "center",
+        marginTop: 20,
+    },
+    paymentHistoryButtonText: {
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "bold",
+    },
+
 });

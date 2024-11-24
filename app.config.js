@@ -1,5 +1,5 @@
 import 'dotenv/config'
-export default{
+export default {
   "expo": {
     "name": "ApoyoSalud",
     "slug": "ApoyoSalud",
@@ -33,5 +33,6 @@ export default{
       appId: process.env.APP_ID,
       measurementId: process.env.MEASUREMENT_ID
     }
+
   }
 }
