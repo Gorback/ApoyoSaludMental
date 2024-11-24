@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useEffect, useState } from "react";
-import { View, TouchableOpacity, Text, Image, StyleSheet, FlatList, ActivityIndicator, RefreshControl } from "react-native";
+import { View, TouchableOpacity, Text, Image, StyleSheet, FlatList, ActivityIndicator, RefreshControl, Linking, Dimensions } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome, AntDesign, Entypo } from '@expo/vector-icons';
 import { signOut } from "firebase/auth";
@@ -7,16 +7,7 @@ import { auth, database as db } from "../config/firebase";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import colors from '../colors';
 
-const calculateAge = (birthdate) => {
-    const today = new Date();
-    const birthDate = new Date(birthdate);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-    }
-    return age;
-};
+const { width, height } = Dimensions.get('window'); // Obtener dimensiones del dispositivo
 
 const Home = () => {
     const navigation = useNavigation();
@@ -24,6 +15,10 @@ const Home = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [professionals, setProfessionals] = useState([]);
     const [photoURL, setPhotoURL] = useState(null);
+
+    const handleOnPressCallContact = () => {
+        Linking.openURL('tel:*4141'); // Simular llamada
+    };
 
     const fetchProfessionals = async () => {
         try {
@@ -40,8 +35,29 @@ const Home = () => {
             setRefreshing(false);
         }
     };
+    const fetchUserPhoto = async () => {
+        try {
+            const userId = auth.currentUser?.uid;
+            if (userId) {
+                const userDoc = await getDoc(doc(db, "users", userId));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    
+                    if (userData.photoURL) {
+                        setPhotoURL(`data:image/jpeg;base64,${userData.photoURL}`);
+                    }
+                } else {
+                    console.log("Documento del usuario no existe");
+                }
+            } else {
+                console.log("Usuario no autenticado");
+            }
+        } catch (error) {
+            console.log("Error fetching user photo:", error);
+        }
+    };
+    
 
-    // Obtener la foto del usuario actual desde Firestore
     useEffect(() => {
         const fetchUserPhoto = async () => {
             try {
@@ -50,7 +66,6 @@ const Home = () => {
                     const userDoc = await getDoc(doc(db, "users", userId));
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
-                        // Agregar prefijo para que `Image` lo interprete como base64
                         setPhotoURL(`data:image/png;base64,${userData.photoURL}`);
                     } else {
                         console.log("Documento del usuario no existe");
@@ -65,7 +80,6 @@ const Home = () => {
         fetchUserPhoto();
     }, []);
 
-    // Configurar el encabezado con la imagen del usuario
     useLayoutEffect(() => {
         navigation.setOptions({
             headerTitle: () => (
@@ -89,7 +103,6 @@ const Home = () => {
             ),
         });
     }, [navigation, photoURL]);
-    
 
     useEffect(() => {
         fetchProfessionals();
@@ -128,7 +141,6 @@ const Home = () => {
             <View style={styles.professionalInfo}>
                 <Text style={styles.professionalName}>{item.userProfesional}</Text>
                 <Text style={styles.professionalDatos}>Especialidad: {item.especialidad}</Text>
-                <Text style={styles.professionalDatos}>Edad: {calculateAge(item.fechaNacimiento)}</Text>
                 <Text style={styles.professionalDatos}>Tarifa: {item.tarifa}</Text>
             </View>
         </TouchableOpacity>
@@ -152,6 +164,17 @@ const Home = () => {
                 style={styles.chatButton}
             >
                 <Entypo name="chat" size={24} color={colors.lightGray} />
+            </TouchableOpacity>
+
+            {/* Botón de llamada */}
+            <TouchableOpacity
+                onPress={handleOnPressCallContact}
+                style={styles.callButton}
+            >
+                <Image
+                    source={require("../assets/Llamada.webp")}
+                    style={styles.callImage}
+                />
             </TouchableOpacity>
         </View>
     );
@@ -201,14 +224,26 @@ const styles = StyleSheet.create({
         bottom: 20,
         right: 20,
         backgroundColor: colors.primary,
-        height: 50,
-        width: 50,
-        borderRadius: 25,
+        height: 70,
+        width: 70,
+        borderRadius: 35,
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: colors.primary,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.9,
         shadowRadius: 8,
+    },
+    callButton: {
+        position: 'absolute',
+        bottom: 20, // Distancia desde la parte inferior
+        left: 20, // Distancia desde la izquierda
+        borderRadius: 150,
+        
+    },
+    callImage: {
+        width: 70, // Tamaño ajustado
+        height: 70,
+        resizeMode: 'contain', // Asegura que la imagen no se deforme
     },
 });

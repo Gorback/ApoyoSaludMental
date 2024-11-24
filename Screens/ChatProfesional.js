@@ -30,19 +30,30 @@ export default function ChatProfesional() {
     }, [navigation]);
 
     useEffect(() => {
+        // Obtener la foto del profesional
         const fetchProfessionalPhoto = async () => {
-            const docRef = doc(database, 'profesionales', auth.currentUser.uid);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const photoBase64 = docSnap.data().photoURL;
-                setProfessionalPhoto(`data:image/jpeg;base64,${photoBase64}`);
-            } else {
-                setProfessionalPhoto("https://via.placeholder.com/150");
+            try {
+                const docRef = doc(database, 'profesionales', auth.currentUser.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const photoBase64 = docSnap.data().photoURL;
+                    setProfessionalPhoto(`data:image/jpeg;base64,${photoBase64}`);
+                } else {
+                    setProfessionalPhoto("https://via.placeholder.com/150");
+                }
+            } catch (error) {
+                console.error("Error al obtener la foto del profesional:", error);
             }
         };
         fetchProfessionalPhoto();
 
-        const currentProfessionalId = auth.currentUser.uid;
+        const currentProfessionalId = auth.currentUser?.uid;
+        if (!currentProfessionalId || !userId) {
+            console.error("Error: ID del profesional o usuario no definido.");
+            return;
+        }
+
+        // Consulta a Firestore
         const collectionRef = collection(database, 'chats');
         const q = query(
             collectionRef,
@@ -54,31 +65,45 @@ export default function ChatProfesional() {
             setMessages(
                 querySnapshot.docs
                     .filter(doc => doc.data().participants.includes(userId))
-                    .map(doc => ({
-                        _id: doc.data()._id,
-                        createdAt: doc.data().createdAt.toDate(),
-                        text: doc.data().text,
-                        user: doc.data().user,
-                    }))
+                    .map(doc => {
+                        const data = doc.data();
+                        // Validación de campos requeridos
+                        return {
+                            _id: data._id || doc.id,
+                            createdAt: data.createdAt?.toDate?.() || new Date(),
+                            text: data.text || "Mensaje vacío",
+                            user: data.user || { _id: "sistema", name: "Sistema" },
+                        };
+                    })
             );
         });
 
         return unsubscribe;
     }, [userId]);
 
-    const onSend = useCallback((messages = []) => {
-        const currentProfessionalId = auth.currentUser.uid;
-        setMessages(previousMessages => GiftedChat.append(previousMessages, messages));
+    const onSend = useCallback(
+        (messages = []) => {
+            const currentProfessionalId = auth.currentUser?.uid;
+            if (!currentProfessionalId) {
+                console.error("Error: ID del profesional no definido.");
+                return;
+            }
 
-        const { _id, createdAt, text, user } = messages[0];
-        addDoc(collection(database, 'chats'), {
-            _id,
-            createdAt,
-            text,
-            user,
-            participants: [currentProfessionalId, userId],
-        });
-    }, [userId]);
+            setMessages(previousMessages => GiftedChat.append(previousMessages, messages));
+
+            const { _id, createdAt, text, user } = messages[0];
+            addDoc(collection(database, 'chats'), {
+                _id,
+                createdAt,
+                text,
+                user,
+                participants: [currentProfessionalId, userId],
+            }).catch(error => {
+                console.error("Error al enviar el mensaje:", error);
+            });
+        },
+        [userId]
+    );
 
     return (
         <GiftedChat

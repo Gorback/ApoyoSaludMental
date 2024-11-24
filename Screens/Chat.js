@@ -11,6 +11,7 @@ import colors from '../colors';
 export default function Chat() {
     const [messages, setMessages] = useState([]);
     const [userPhoto, setUserPhoto] = useState(null);
+    const [professionalName, setProfessionalName] = useState("Cargando...");
     const navigation = useNavigation();
     const route = useRoute();
     const { professionalId } = route.params;
@@ -18,31 +19,63 @@ export default function Chat() {
     const onSignOut = () => {
         signOut(auth).catch(error => console.log('Error logging out: ', error));
     };
+    
 
     useLayoutEffect(() => {
+        // Actualizar el nombre del profesional en la barra superior
         navigation.setOptions({
+            headerTitle: professionalName,
             headerRight: () => (
                 <TouchableOpacity style={{ marginRight: 10 }} onPress={onSignOut}>
                     <AntDesign name="logout" size={24} color={colors.gray} />
                 </TouchableOpacity>
-            )
+            ),
         });
-    }, [navigation]);
+    }, [navigation, professionalName]);
 
     useEffect(() => {
+        // Obtener la foto del usuario
         const fetchUserPhoto = async () => {
-            const userDocRef = doc(database, 'users', auth.currentUser.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-                const photoBase64 = userDocSnap.data().photoURL;
-                setUserPhoto(`data:image/jpeg;base64,${photoBase64}`);
-            } else {
-                setUserPhoto("https://via.placeholder.com/150");
+            try {
+                const userDocRef = doc(database, 'users', auth.currentUser.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                    const photoBase64 = userDocSnap.data().photoURL;
+                    setUserPhoto(`data:image/jpeg;base64,${photoBase64}`);
+                } else {
+                    setUserPhoto("https://via.placeholder.com/150");
+                }
+            } catch (error) {
+                console.error("Error al obtener la foto del usuario:", error);
             }
         };
-        fetchUserPhoto();
 
-        const currentUserId = auth.currentUser.uid;
+        // Obtener el nombre del profesional
+        const fetchProfessionalName = async () => {
+            try {
+                const professionalDocRef = doc(database, 'profesionales', professionalId);
+                const professionalDocSnap = await getDoc(professionalDocRef);
+                if (professionalDocSnap.exists()) {
+                    setProfessionalName(professionalDocSnap.data().userProfesional || "Sin nombre");
+                } else {
+                    setProfessionalName("Profesional no encontrado");
+                }
+            } catch (error) {
+                console.error("Error al obtener el nombre del profesional:", error);
+                setProfessionalName("Error al cargar");
+            }
+        };
+
+        fetchUserPhoto();
+        fetchProfessionalName();
+
+        const currentUserId = auth.currentUser?.uid;
+        if (!currentUserId || !professionalId) {
+            console.error("Error: ID del usuario o profesional no definido.");
+            return;
+        }
+
+        // Consulta a Firestore
         const collectionRef = collection(database, 'chats');
         const q = query(
             collectionRef,
@@ -52,33 +85,44 @@ export default function Chat() {
 
         const unsubscribe = onSnapshot(q, querySnapshot => {
             setMessages(
-                querySnapshot.docs
-                    .filter(doc => doc.data().participants.includes(professionalId))
-                    .map(doc => ({
-                        _id: doc.data()._id,
-                        createdAt: doc.data().createdAt.toDate(),
-                        text: doc.data().text,
-                        user: doc.data().user,
-                    }))
+                querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        _id: data._id || doc.id,
+                        createdAt: data.createdAt?.toDate?.() || new Date(),
+                        text: data.lastMessage || "", // Aseguramos que se utilice el campo `lastMessage`
+                        user: data.user || { _id: "sistema", name: "Sistema" },
+                    };
+                })
             );
         });
 
         return unsubscribe;
     }, [professionalId]);
 
-    const onSend = useCallback((messages = []) => {
-        const currentUserId = auth.currentUser.uid;
-        setMessages(previousMessages => GiftedChat.append(previousMessages, messages));
+    const onSend = useCallback(
+        (messages = []) => {
+            const currentUserId = auth.currentUser?.uid;
+            if (!currentUserId) {
+                console.error("Error: ID del usuario no definido.");
+                return;
+            }
 
-        const { _id, createdAt, text, user } = messages[0];
-        addDoc(collection(database, 'chats'), {
-            _id,
-            createdAt,
-            text,
-            user,
-            participants: [currentUserId, professionalId],
-        });
-    }, [professionalId]);
+            setMessages(previousMessages => GiftedChat.append(previousMessages, messages));
+
+            const { _id, createdAt, text, user } = messages[0];
+            addDoc(collection(database, 'chats'), {
+                _id,
+                createdAt,
+                text,
+                user,
+                participants: [currentUserId, professionalId],
+            }).catch(error => {
+                console.error("Error al enviar el mensaje:", error);
+            });
+        },
+        [professionalId]
+    );
 
     return (
         <GiftedChat

@@ -1,64 +1,80 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Image } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from "../config/firebase"; // Asegúrate de que este archivo apunte a tu configuración correcta de Firebase
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Image } from "react-native";
+import { useNavigation, useRoute, CommonActions } from "@react-navigation/native";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { database } from "../config/firebase";
 
 export default function ProcesandoPago() {
     const navigation = useNavigation();
     const route = useRoute();
     const { idUsuario, idProfesional, chatId, mensajeInicial } = route.params || {};
+    const [loadingMessage, setLoadingMessage] = useState("Procesando tu pago...");
+    const [isError, setIsError] = useState(false);
 
     useEffect(() => {
-        const procesarPago = async () => {
-            if (!idUsuario || !idProfesional || !chatId || !mensajeInicial) {
-                console.error('Faltan parámetros para procesar el pago:', {
-                    idUsuario,
-                    idProfesional,
-                    chatId,
-                    mensajeInicial,
-                });
-                return;
-            }
+        if (!idUsuario || !idProfesional || !chatId || !mensajeInicial) {
+            console.error("Error: Parámetros faltantes:", { idUsuario, idProfesional, chatId, mensajeInicial });
+            setIsError(true);
+            setLoadingMessage("Error al procesar el pago. Parámetros incompletos.");
+            return;
+        }
 
+        const procesarPago = async () => {
             try {
-                // Referencia al documento del chat en Firestore
-                const docRef = doc(db, 'RegistroChat', chatId);
+                setLoadingMessage("Consultando al banco...");
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                const docRef = doc(database, "chats", chatId);
                 const docSnap = await getDoc(docRef);
 
-                if (docSnap.exists()) {
-                    console.log('El chat ya existe en Firebase');
-                } else {
-                    console.log('Creando un nuevo chat en Firebase');
+                if (!docSnap.exists()) {
                     await setDoc(docRef, {
-                        idUsuario,
-                        idProfesional,
-                        mensajes: [mensajeInicial], // Mensaje inicial enviado por el usuario
-                        timestamp: new Date().toISOString(),
+                        participants: [idUsuario, idProfesional],
+                        lastMessage: mensajeInicial || "",
+                        createdAt: new Date(),
+                        chatId: chatId,
                     });
                 }
 
-                // Redirigir al componente del chat
-                navigation.replace('Chat', { chatId });
+                setLoadingMessage("Pago realizado con éxito.");
+
+                // Redirigir al Chat y limpiar la pila de navegación
+                navigation.dispatch(
+                    CommonActions.reset({
+                        index: 1,
+                        routes: [
+                            { name: "Home" }, // Deja el Home en la pila
+                            { name: "Chat", params: { professionalId: idProfesional, chatId } }, // Navega al Chat
+                        ],
+                    })
+                );
             } catch (error) {
-                console.error('Error al procesar el pago y crear el chat:', error);
+                console.error("Error al procesar el pago:", error);
+                setIsError(true);
+                setLoadingMessage("Error al procesar el pago.");
             }
         };
 
         procesarPago();
-    }, [idUsuario, idProfesional, chatId, mensajeInicial, navigation]);
+    }, [idUsuario, idProfesional, chatId, mensajeInicial]);
 
     return (
         <View style={styles.container}>
             {/* Logo de Mercado Pago */}
             <Image
-                source={{ uri: 'https://america-retail.com/wp-content/uploads/2024/03/mercado-pago.jpg' }}
+                source={{ uri: "https://america-retail.com/wp-content/uploads/2024/03/mercado-pago.jpg" }}
                 style={styles.logo}
             />
-            {/* Mensaje */}
-            <Text style={styles.message}>Procesando tu pago...</Text>
+            {/* Mensaje de estado */}
+            <Text style={styles.message}>{loadingMessage}</Text>
             {/* Indicador de carga */}
-            <ActivityIndicator size="large" color="#00bcd4" />
+            {!isError && <ActivityIndicator size="large" color="#00bcd4" />}
+            {/* Botón para volver en caso de error */}
+            {isError && (
+                <TouchableOpacity style={styles.errorButton} onPress={() => navigation.goBack()}>
+                    <Text style={styles.buttonText}>Volver</Text>
+                </TouchableOpacity>
+            )}
         </View>
     );
 }
@@ -66,20 +82,30 @@ export default function ProcesandoPago() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#03AEEF',
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#03AEEF", // Color de fondo original
     },
     logo: {
-        width: 200,
+        width: 200, // Tamaño original del logo
         height: 100,
         marginBottom: 20,
-        resizeMode: 'contain',
+        resizeMode: "contain",
     },
     message: {
         fontSize: 18,
-        fontWeight: 'bold',
-        color: 'white',
+        fontWeight: "bold",
+        color: "white", // Color blanco del texto
         marginBottom: 20,
+    },
+    errorButton: {
+        backgroundColor: "red",
+        padding: 15,
+        borderRadius: 8,
+        marginTop: 20,
+    },
+    buttonText: {
+        color: "#fff",
+        fontSize: 16,
     },
 });

@@ -1,13 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Linking } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+
 import * as Font from 'expo-font';
 
-export default function PaymentOptionsScreen() {
+export default function PAGOMercadoPago() {
     const [fontsLoaded, setFontsLoaded] = useState(false);
     const route = useRoute();
-    const navigation = useNavigation(); // Importar y usar navigation
-    const { preferenceId: tarifa } = route.params; // Recuperar tarifa pasada como parámetro
+    const navigation = useNavigation();
+    const { preferenceId: tarifa, chatParams, professionalName } = route.params;
+
+    useEffect(() => {
+        // Ocultar el encabezado y el botón de retroceso
+        navigation.setOptions({ headerShown: false });
+    }, [navigation]);
 
     useEffect(() => {
         const loadFonts = async () => {
@@ -68,21 +74,23 @@ export default function PaymentOptionsScreen() {
                 <Text style={styles.sectionTitle}>Sin cuenta de Mercado Pago</Text>
                 <TouchableOpacity
                     style={styles.paymentOption}
-                    onPress={() => navigation.navigate("Credito", { preferenceId: tarifa })}>
+                    onPress={() => navigation.navigate("Credito", { preferenceId: tarifa, ...chatParams, professionalName })}
+                >
                     <Image
-                        source={require('../assets/icons8-magnetic-card-32.png')}
+                        source={require("../assets/icons8-magnetic-card-32.png")}
                         style={styles.icon}
                     />
                     <Text style={styles.optionText}>Tarjeta de crédito</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.paymentOption}
-                    onPress={() => navigation.navigate("Debito", { preferenceId: tarifa })}>
+                    onPress={() => navigation.navigate("Debito", { preferenceId: tarifa, ...chatParams, professionalName })}
+                >
                     <Image
-                        source={require('../assets/icons8-parte-trasera-de-tarjeta-bancaria-48.png')}
+                        source={require("../assets/icons8-parte-trasera-de-tarjeta-bancaria-48.png")}
                         style={styles.icon}
                     />
-                    <Text style={styles.optionText}>Tarjeta de débito o prepago</Text>
+                    <Text style={styles.optionText}>Tarjeta de débito</Text>
                 </TouchableOpacity>
             </View>
 
@@ -172,7 +180,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
         fontFamily: 'ProximaNova-Light',
-        left:2,
+        left: 2,
     },
     detailsValue: {
         fontSize: 14,

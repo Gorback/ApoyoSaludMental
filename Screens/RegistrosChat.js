@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet, ActivityIndicator, Linking } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { collection, query, where, onSnapshot, orderBy, doc, getDoc } from "firebase/firestore";
 import { auth, database as db } from "../config/firebase";
@@ -9,8 +9,14 @@ const RegistroChat = () => {
     const [loading, setLoading] = useState(true);
     const [chatList, setChatList] = useState([]);
     const navigation = useNavigation();
+    const handleOnPressCallContact = () => { Linking.openURL('tel:*4141') };
 
     useEffect(() => {
+        // Establecer el título de la pantalla
+        navigation.setOptions({
+            headerTitle: "Conversaciones",
+        });
+
         const currentUserId = auth.currentUser.uid;
         const collectionRef = collection(db, "chats");
 
@@ -33,7 +39,6 @@ const RegistroChat = () => {
                     const userDocSnap = await getDoc(userDocRef);
 
                     if (userDocSnap.exists()) {
-                        console.log("Datos del profesional:", userDocSnap.data()); // Depuración
                         const professionalName = userDocSnap.data().userProfesional || "Sin nombre";
                         chats[otherParticipantId] = {
                             id: otherParticipantId,
@@ -42,7 +47,6 @@ const RegistroChat = () => {
                             professionalPhoto: `data:image/jpeg;base64,${userDocSnap.data().photoURL}`,
                         };
                     } else {
-                        console.log(`No se encontraron datos para el usuario con ID ${otherParticipantId}`);
                         chats[otherParticipantId] = {
                             id: otherParticipantId,
                             lastMessage: chatData.text || "Último mensaje...",
@@ -90,6 +94,15 @@ const RegistroChat = () => {
                 renderItem={renderChatItem}
                 contentContainerStyle={styles.listContent}
             />
+            <TouchableOpacity
+                onPress={() => Linking.openURL('tel:*4141')}
+                style={styles.callButton}
+            >
+                <Image
+                    source={require("../assets/Llamada.webp")}
+                    style={styles.callImage}
+                />
+            </TouchableOpacity>
         </View>
     );
 };
@@ -136,4 +149,16 @@ const styles = StyleSheet.create({
         color: '#666',
         marginTop: 5,
     },
+    callButton: {
+        position: 'absolute',
+        bottom: 20, // Distancia desde la parte inferior
+        left: 20, // Distancia desde la izquierda
+        borderRadius: 150,
+    },
+    callImage: {
+        width: 70, // Tamaño ajustado
+        height: 70,
+        resizeMode: 'contain', // Asegura que la imagen no se deforme
+    },
+
 });

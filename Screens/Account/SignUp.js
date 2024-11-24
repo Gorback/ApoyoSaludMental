@@ -74,9 +74,13 @@ export default function SignUp({ navigation }) {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const userId = userCredential.user.uid;
                 let imageUrl = null;
+                
                 if (image) {
+                    // Esperar a que la imagen se convierta a base64 antes de continuar
                     imageUrl = await uploadImageAsBase64(image);
                 }
+    
+                // Guardar el documento del usuario con todos los datos, incluyendo la imagen
                 await setDoc(doc(db, "users", userId), {
                     user: user,
                     email: email,
@@ -84,8 +88,10 @@ export default function SignUp({ navigation }) {
                     genero: genero === "Otros" ? otroGenero : genero,
                     photoURL: imageUrl,
                 });
+    
                 console.log("Registro y datos guardados con éxito");
-                // Navegar a la pantalla de inicio u otra después del registro
+                
+                // Navegar a la pantalla de inicio después de guardar todos los datos
                 navigation.navigate("Home");
             } catch (err) {
                 Alert.alert("Error en el registro", err.message);
@@ -94,6 +100,7 @@ export default function SignUp({ navigation }) {
             Alert.alert("Error", "Por favor completa todos los campos.");
         }
     };
+    
 
     const showDatePickerModal = () => {
         setShowDatePicker(true);
@@ -199,25 +206,6 @@ export default function SignUp({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
-                {/* Botón para llamar */}
-                <View title='call contact' onPress={handleOnPressCallContact}>
-                    <TouchableOpacity onPress={handleOnPressCallContact}
-                        style={{
-                            width: 70,
-                            height: 70,
-                            position: 'absolute',
-                            bottom: -70,
-                            right: 280,
-                        }}>
-                        <Image
-                            source={require("../../assets/Llamada.webp")}
-                            style={{
-                                width: 70,
-                                height: 70,
-                            }}
-                        />
-                    </TouchableOpacity>
-                </View>
             </SafeAreaView>
         </View>
     );
@@ -235,14 +223,21 @@ const styles = StyleSheet.create({
         alignSelf: "center",
         paddingBottom: 20,
     },
-    input: {
-        backgroundColor: "#F6F7FB",
-        height: 42,
-        marginBottom: 20,
-        fontSize: 16,
-        borderRadius: 10,
-        padding: 12,
-    },
+input: {
+    backgroundColor: "#fff",
+    height: 50,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 15,
+    fontSize: 16,
+    width: "100%", // Asegura que el Picker ocupe todo el ancho del contenedor
+    borderWidth: 1,
+    borderColor: "#ddd",
+},
+picker: {
+    height: 50,
+    width: "100%", // Configuración para que el Picker use todo el ancho disponible
+},
     label: {
         marginBottom: 5,
         fontSize: 16,

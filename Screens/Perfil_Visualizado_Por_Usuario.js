@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import { AntDesign } from "@expo/vector-icons";
 import colors from "../colors";
 
 const calculateAge = (birthdate) => {
@@ -19,46 +20,54 @@ const PerfilVisualizadoPorUsuario = () => {
     const navigation = useNavigation();
     const { professional } = route.params;
 
+    // Ocultar la barra superior
+    useEffect(() => {
+        navigation.setOptions({ headerShown: false });
+    }, [navigation]);
+
     const handlePaymentAndChat = () => {
-        try {
-            if (!professional.tarifa || professional.tarifa <= 0) {
-                throw new Error("La tarifa del profesional no es válida.");
-            }
-
-            if (!professional.userProfesional) {
-                throw new Error("El nombre del profesional no está disponible.");
-            }
-
-            // Navegar a la pantalla de pago con los parámetros correctos
-            navigation.navigate("PAGOMercadoPago", {
-                preferenceId: professional.tarifa,
-                chatParams: {
-                    professionalId: professional.id, // ID único del profesional
-                },
-                professionalName: professional.userProfesional,
-                professionalPhoto: professional.photoURL,
-            });
-        } catch (error) {
-            Alert.alert("Error", error.message || "No se pudo procesar el pago.");
+        if (!professional.tarifa || professional.tarifa <= 0) {
+            Alert.alert("Error", "La tarifa del profesional no es válida.");
+            return;
         }
+
+        if (!professional.id) {
+            Alert.alert("Error", "No se encontró el ID del profesional.");
+            return;
+        }
+
+        navigation.navigate("PAGOMercadoPago", {
+            preferenceId: professional.tarifa,
+            chatParams: {
+                professionalId: professional.id,
+            },
+            professionalName: professional.userProfesional,
+            professionalPhoto: professional.photoURL,
+        });
     };
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            <Image
-                source={{
-                    uri: professional.photoURL
-                        ? `data:image/jpeg;base64,${professional.photoURL}`
-                        : "https://via.placeholder.com/150",
-                }}
-                style={styles.profileImage}
-            />
-            <Text style={styles.nameText}>{professional.userProfesional}</Text>
-            <Text style={styles.infoText}>Edad: {calculateAge(professional.fechaNacimiento)} años</Text>
-            <Text style={styles.infoText}>Especialidad: {professional.especialidad}</Text>
-            <Text style={styles.infoText}>Tarifa: ${professional.tarifa}</Text>
-            <Text style={styles.sectionTitle}>Descripción</Text>
-            <Text style={styles.descriptionText}>{professional.descripcion}</Text>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                <AntDesign name="arrowleft" size={24} top={20} color="orange" />
+            </TouchableOpacity>
+            {/* Contenedor cerrado */}
+            <View style={styles.professionalContainer}>
+                <Image
+                    source={{
+                        uri: professional.photoURL
+                            ? `data:image/jpeg;base64,${professional.photoURL}`
+                            : "https://via.placeholder.com/150",
+                    }}
+                    style={styles.profileImage}
+                />
+                <Text style={styles.nameText}>{professional.userProfesional}</Text>
+                <Text style={styles.infoText}>Edad: {calculateAge(professional.fechaNacimiento)} años</Text>
+                <Text style={styles.infoText}>Especialidad: {professional.especialidad}</Text>
+                <Text style={styles.infoText}>Tarifa: ${professional.tarifa}</Text>
+                <Text style={styles.sectionTitle}>Descripción</Text>
+                <Text style={styles.descriptionText}>{professional.descripcion}</Text>
+            </View>
 
             <TouchableOpacity style={styles.chatButton} onPress={handlePaymentAndChat}>
                 <Text style={styles.chatButtonText}>Pagar Sesión</Text>
@@ -73,8 +82,27 @@ const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
         alignItems: "center",
+        justifyContent: "center",
         padding: 20,
         backgroundColor: "#fff",
+    },
+    backButton: {
+        position: "absolute",
+        top: 20,
+        left: 20,
+    },
+    professionalContainer: {
+        width: "90%",
+        backgroundColor: "#F6F7FB", // Fondo similar a los otros contenedores
+        borderRadius: 20,
+        padding: 20,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 5,
+        marginBottom: 20, // Espaciado con otros elementos
     },
     profileImage: {
         width: 150,
