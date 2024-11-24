@@ -12,6 +12,11 @@ export default function ProcesandoPago() {
     const [isError, setIsError] = useState(false);
 
     useEffect(() => {
+        navigation.setOptions({ headerShown: false });
+    }, [navigation]);
+
+    
+    useEffect(() => {
         if (!idUsuario || !idProfesional || !chatId || !mensajeInicial) {
             console.error("Error: Parámetros faltantes:", { idUsuario, idProfesional, chatId, mensajeInicial });
             setIsError(true);
@@ -30,7 +35,7 @@ export default function ProcesandoPago() {
                 if (!docSnap.exists()) {
                     await setDoc(docRef, {
                         participants: [idUsuario, idProfesional],
-                        lastMessage: mensajeInicial || "",
+                        lastMessage: null,
                         createdAt: new Date(),
                         chatId: chatId,
                     });

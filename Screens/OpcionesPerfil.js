@@ -14,13 +14,14 @@ const OpcionesProfesional = () => {
         tarifa: '',
         descripcion: ''
     });
-    const [loading, setLoading] = useState(true); // Estado de carga
-
+    const [loading, setLoading] = useState(true);
     useEffect(() => {
-        // Cargar los datos actuales del usuario de Firestore
+        navigation.setOptions({ headerShown: false });
+    }, [navigation]);
+    useEffect(() => {
         const fetchUserData = async () => {
             try {
-                setLoading(true); // Comienza la carga
+                setLoading(true);
                 const userId = auth.currentUser.uid;
                 const docRef = doc(db, "profesionales", userId);
                 const docSnap = await getDoc(docRef);
@@ -33,7 +34,7 @@ const OpcionesProfesional = () => {
             } catch (error) {
                 console.log("Error al obtener los datos del usuario:", error);
             } finally {
-                setLoading(false); // Termina la carga
+                setLoading(false);
             }
         };
 
@@ -53,7 +54,7 @@ const OpcionesProfesional = () => {
             });
 
             Alert.alert("Éxito", "Tus datos han sido actualizados correctamente.");
-            navigation.goBack(); // Vuelve a la pantalla anterior
+            navigation.goBack();
         } catch (error) {
             console.log("Error al actualizar los datos:", error);
             Alert.alert("Error", "No se pudieron actualizar los datos.");
@@ -81,39 +82,41 @@ const OpcionesProfesional = () => {
                 <AntDesign name="arrowleft" size={24} color={colors.primary} />
             </TouchableOpacity>
 
-            <Text style={styles.title}>Editar Perfil Profesional</Text>
+            <View style={styles.background}>
+                <Text style={styles.title}>Editar Perfil Profesional</Text>
 
-            <TextInput
-                style={styles.input}
-                placeholder="Nombre del Profesional"
-                value={userData.userProfesional}
-                onChangeText={(text) => handleChange("userProfesional", text)}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Especialidad"
-                value={userData.especialidad}
-                onChangeText={(text) => handleChange("especialidad", text)}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Tarifa"
-                value={userData.tarifa}
-                onChangeText={(text) => handleChange("tarifa", text)}
-                keyboardType="numeric"
-            />
-            <TextInput
-                style={styles.descriptionInput}
-                placeholder="Descripción"
-                value={userData.descripcion}
-                onChangeText={(text) => handleChange("descripcion", text)}
-                multiline
-                maxLength={500}
-            />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Nombre del Profesional"
+                    value={userData.userProfesional}
+                    onChangeText={(text) => handleChange("userProfesional", text)}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Especialidad"
+                    value={userData.especialidad}
+                    onChangeText={(text) => handleChange("especialidad", text)}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Tarifa"
+                    value={userData.tarifa}
+                    onChangeText={(text) => handleChange("tarifa", text)}
+                    keyboardType="numeric"
+                />
+                <TextInput
+                    style={styles.descriptionInput}
+                    placeholder="Descripción"
+                    value={userData.descripcion}
+                    onChangeText={(text) => handleChange("descripcion", text)}
+                    multiline
+                    maxLength={500}
+                />
 
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.saveButtonText}>Guardar</Text>
-            </TouchableOpacity>
+                <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                    <Text style={styles.saveButtonText}>Guardar</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 };
@@ -123,52 +126,74 @@ export default OpcionesProfesional;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
-        backgroundColor: "#fff",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: colors.lightGray,
     },
     loadingContainer: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    background: {
+        width: '90%',
+        backgroundColor: '#F6F7FB',
+        borderRadius: 20,
+        padding: 20,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 5,
     },
     backButton: {
-        marginBottom: 20,
+        position: "absolute",
+        top: 40,
+        left: 20,
     },
     title: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontWeight: "bold",
         color: colors.primary,
         marginBottom: 20,
-        textAlign: 'center',
+        textAlign: "center",
     },
     input: {
-        backgroundColor: "#F6F7FB",
+        backgroundColor: "#fff",
         height: 50,
         borderRadius: 8,
         padding: 10,
         marginBottom: 15,
         fontSize: 16,
+        width: "100%",
+        borderWidth: 1,
+        borderColor: "#ddd",
     },
     descriptionInput: {
-        backgroundColor: "#F6F7FB",
+        backgroundColor: "#fff",
         height: 100,
         borderRadius: 8,
         padding: 10,
         marginBottom: 15,
         fontSize: 16,
-        textAlignVertical: 'top',
+        textAlignVertical: "top",
+        width: "100%",
+        borderWidth: 1,
+        borderColor: "#ddd",
     },
     saveButton: {
         backgroundColor: colors.primary,
         height: 50,
         borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: "center",
+        alignItems: "center",
         marginTop: 20,
+        width: "100%",
     },
     saveButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
+        color: "#fff",
+        fontWeight: "bold",
         fontSize: 18,
     },
 });

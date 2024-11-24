@@ -51,29 +51,18 @@ const HomeProfesional = () => {
 
     useLayoutEffect(() => {
         navigation.setOptions({
-            headerTitle: "",
-            headerLeft: () => null,
+            headerTitle: "Bienvenido", // Texto que reemplaza la foto en el encabezado
+            headerLeft: () => null, // Eliminar el botón "Atrás"
             headerRight: () => (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Image
-                        source={{ uri: profileImage }}
-                        style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 20,
-                            marginRight: 15,
-                        }}
-                    />
-                    <TouchableOpacity
-                        style={{ marginRight: 10 }}
-                        onPress={() => auth.signOut().then(() => navigation.navigate("Login")).catch((error) => console.log("Error al cerrar sesión:", error))}
-                    >
-                        <AntDesign name="logout" size={24} color={colors.gray} />
-                    </TouchableOpacity>
-                </View>
-            )
+                <TouchableOpacity
+                    style={{ marginRight: 10 }}
+                    onPress={() => auth.signOut().then(() => navigation.navigate("Login")).catch((error) => console.log("Error al cerrar sesión:", error))}
+                >
+                    <AntDesign name="logout" size={24} color={colors.gray} />
+                </TouchableOpacity>
+            ),
         });
-    }, [navigation, profileImage]);
+    }, [navigation]);
 
     if (loading) {
         return (
@@ -214,5 +203,10 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.9,
         shadowRadius: 8,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
     },
 });

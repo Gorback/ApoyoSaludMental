@@ -9,7 +9,12 @@ const RegistroChatProfesional = () => {
     const [loading, setLoading] = useState(true);
     const [chatList, setChatList] = useState([]);
     const navigation = useNavigation();
-
+    useEffect(() => {
+        // Configurar el título en la barra superior
+        navigation.setOptions({
+            headerTitle: "Sesiones con Pacientes",
+        });
+    }, [navigation]);
     useEffect(() => {
         const currentProfessionalId = auth.currentUser.uid;
         const collectionRef = collection(db, "chats");

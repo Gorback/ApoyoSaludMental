@@ -94,6 +94,7 @@ export default function Chat() {
                         user: data.user || { _id: "sistema", name: "Sistema" },
                     };
                 })
+                .filter(message => message.text.trim() !== "") // Filtra mensajes vacíos
             );
         });
         

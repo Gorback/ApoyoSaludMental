@@ -11,6 +11,7 @@ import colors from '../colors';
 export default function ChatProfesional() {
     const [messages, setMessages] = useState([]);
     const [professionalPhoto, setProfessionalPhoto] = useState(null);
+    const [userName, setUserName] = useState("Cargando...");
     const navigation = useNavigation();
     const route = useRoute();
     const { userId } = route.params;
@@ -20,16 +21,34 @@ export default function ChatProfesional() {
     };
 
     useLayoutEffect(() => {
+        // Actualizar el título con el nombre del usuario
         navigation.setOptions({
+            headerTitle: userName,
             headerRight: () => (
                 <TouchableOpacity style={{ marginRight: 10 }} onPress={onSignOut}>
                     <AntDesign name="logout" size={24} color={colors.gray} />
                 </TouchableOpacity>
-            )
+            ),
         });
-    }, [navigation]);
+    }, [navigation, userName]);
 
     useEffect(() => {
+        // Obtener el nombre del usuario
+        const fetchUserName = async () => {
+            try {
+                const userDocRef = doc(database, 'users', userId);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                    setUserName(userDocSnap.data().user || "Sin nombre");
+                } else {
+                    setUserName("Usuario no encontrado");
+                }
+            } catch (error) {
+                console.error("Error al obtener el nombre del usuario:", error);
+                setUserName("Error al cargar");
+            }
+        };
+
         // Obtener la foto del profesional
         const fetchProfessionalPhoto = async () => {
             try {
@@ -45,6 +64,8 @@ export default function ChatProfesional() {
                 console.error("Error al obtener la foto del profesional:", error);
             }
         };
+
+        fetchUserName();
         fetchProfessionalPhoto();
 
         const currentProfessionalId = auth.currentUser?.uid;
@@ -53,7 +74,7 @@ export default function ChatProfesional() {
             return;
         }
 
-        // Consulta a Firestore
+        // Consulta a Firestore para obtener los mensajes
         const collectionRef = collection(database, 'chats');
         const q = query(
             collectionRef,
@@ -64,46 +85,45 @@ export default function ChatProfesional() {
         const unsubscribe = onSnapshot(q, querySnapshot => {
             setMessages(
                 querySnapshot.docs
-                    .filter(doc => doc.data().participants.includes(userId))
+                    .filter(doc => doc.data().participants.includes(userId)) // Filtrar por participantes
                     .map(doc => {
                         const data = doc.data();
-                        // Validación de campos requeridos
                         return {
                             _id: data._id || doc.id,
                             createdAt: data.createdAt?.toDate?.() || new Date(),
-                            text: data.text || "Mensaje vacío",
+                            text: data.text || "", // Evitar mostrar texto vacío
                             user: data.user || { _id: "sistema", name: "Sistema" },
                         };
                     })
+                    .filter(message => message.text.trim() !== "") // Filtrar mensajes con texto vacío
             );
         });
+        
 
         return unsubscribe;
     }, [userId]);
 
     const onSend = useCallback(
         (messages = []) => {
-            const currentProfessionalId = auth.currentUser?.uid;
-            if (!currentProfessionalId) {
-                console.error("Error: ID del profesional no definido.");
-                return;
-            }
-
+            const { text } = messages[0];
+            if (!text.trim()) return; // Ignorar mensajes vacíos
+    
             setMessages(previousMessages => GiftedChat.append(previousMessages, messages));
-
-            const { _id, createdAt, text, user } = messages[0];
+    
+            const { _id, createdAt, user } = messages[0];
             addDoc(collection(database, 'chats'), {
                 _id,
                 createdAt,
                 text,
                 user,
-                participants: [currentProfessionalId, userId],
+                participants: [auth.currentUser?.uid, userId],
             }).catch(error => {
                 console.error("Error al enviar el mensaje:", error);
             });
         },
         [userId]
     );
+    
 
     return (
         <GiftedChat
@@ -111,7 +131,7 @@ export default function ChatProfesional() {
             onSend={messages => onSend(messages)}
             user={{
                 _id: auth?.currentUser?.uid,
-                avatar: professionalPhoto, // Foto del profesional
+                avatar: professionalPhoto,
             }}
             messagesContainerStyle={{ backgroundColor: '#fff' }}
             textInputStyle={{ backgroundColor: '#fff', borderRadius: 20 }}
