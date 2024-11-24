@@ -30,7 +30,7 @@ const PerfilVisualizadoPorUsuario = () => {
             Alert.alert("Error", "Faltan datos del profesional para realizar el pago.");
             return;
         }
-    
+
         navigation.navigate("PAGOMercadoPago", {
             chatParams: {
                 idUsuario: auth.currentUser.uid,
@@ -42,7 +42,7 @@ const PerfilVisualizadoPorUsuario = () => {
             professionalName: professional.userProfesional,
         });
     };
-    
+
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -60,8 +60,10 @@ const PerfilVisualizadoPorUsuario = () => {
                 />
                 <Text style={styles.nameText}>{professional.userProfesional}</Text>
                 <Text style={styles.infoText}>Edad: {calculateAge(professional.fechaNacimiento)} años</Text>
+                <Text style={styles.infoText}>Género: {professional.genero}</Text>
                 <Text style={styles.infoText}>Especialidad: {professional.especialidad}</Text>
                 <Text style={styles.infoText}>Tarifa: ${professional.tarifa}</Text>
+
                 <Text style={styles.sectionTitle}>Descripción</Text>
                 <Text style={styles.descriptionText}>{professional.descripcion}</Text>
             </View>
