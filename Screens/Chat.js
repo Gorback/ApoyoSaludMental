@@ -90,12 +90,13 @@ export default function Chat() {
                     return {
                         _id: data._id || doc.id,
                         createdAt: data.createdAt?.toDate?.() || new Date(),
-                        text: data.lastMessage || "", // Aseguramos que se utilice el campo `lastMessage`
+                        text: data.text || "", // Asegúrate de que el texto esté presente
                         user: data.user || { _id: "sistema", name: "Sistema" },
                     };
                 })
             );
         });
+        
 
         return unsubscribe;
     }, [professionalId]);
@@ -107,9 +108,9 @@ export default function Chat() {
                 console.error("Error: ID del usuario no definido.");
                 return;
             }
-
+    
             setMessages(previousMessages => GiftedChat.append(previousMessages, messages));
-
+    
             const { _id, createdAt, text, user } = messages[0];
             addDoc(collection(database, 'chats'), {
                 _id,
@@ -123,6 +124,7 @@ export default function Chat() {
         },
         [professionalId]
     );
+    
 
     return (
         <GiftedChat
